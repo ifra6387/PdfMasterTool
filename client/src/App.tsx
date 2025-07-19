@@ -1,4 +1,5 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
+import { useEffect } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,7 +14,6 @@ import Processing from "@/pages/processing";
 import Download from "@/pages/download";
 import LoginStandalone from "@/pages/login-standalone";
 import SignUpStandalone from "@/pages/signup-standalone";
-import Dashboard from "@/pages/dashboard";
 import ToolPlaceholder from "@/pages/tool-placeholder";
 import { AuthGuard } from "@/components/auth-guard";
 
@@ -36,8 +36,14 @@ function Router() {
       <Route path="/login" component={LoginStandalone} />
       <Route path="/signup" component={SignUpStandalone} />
       
-      {/* Dashboard still accessible but not default */}
-      <Route path="/dashboard" component={Dashboard} />
+      {/* Dashboard redirect to tools home page */}
+      <Route path="/dashboard" component={() => {
+        const [, setLocation] = useLocation();
+        useEffect(() => {
+          setLocation('/', { replace: true });
+        }, [setLocation]);
+        return null;
+      }} />
       
       {/* Tool placeholder routes */}
       <Route path="/tool/:toolName" component={ToolPlaceholder} />

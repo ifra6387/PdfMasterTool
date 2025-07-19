@@ -44,7 +44,7 @@ export default function NotFound() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Available pages: <Link href="/" className="text-blue-600 hover:underline">Tools Home</Link>, 
               <Link href="/signin" className="text-blue-600 hover:underline"> Sign In</Link>, 
-              <Link href="/dashboard" className="text-blue-600 hover:underline"> Dashboard</Link>
+              <Link href="/signup" className="text-blue-600 hover:underline"> Sign Up</Link>
             </p>
           </div>
         </CardContent>
