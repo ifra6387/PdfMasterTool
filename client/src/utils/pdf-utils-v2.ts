@@ -298,26 +298,55 @@ export async function pdfToWord(file: File): Promise<Blob> {
     
     console.log(`Total extracted: ${totalCharacters} characters from ${pdf.numPages} pages`);
     
-    // Check if meaningful text was extracted
+    // Enhanced detection for scanned/image-based PDFs
     if (totalCharacters < 5) {
-      throw new Error('This PDF may be image-based or unreadable. Please upload a text-based PDF.');
+      // Check if PDF has images that might be scanned content
+      let hasImages = false;
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const operatorList = await page.getOperatorList();
+        
+        // Check for image operators
+        for (let i = 0; i < operatorList.fnArray.length; i++) {
+          if ([pdfjsLib.OPS.paintImageXObject, pdfjsLib.OPS.paintInlineImageXObject, pdfjsLib.OPS.paintImageMaskXObject].includes(operatorList.fnArray[i])) {
+            hasImages = true;
+            break;
+          }
+        }
+        if (hasImages) break;
+      }
+      
+      if (hasImages) {
+        throw new Error('Scanned PDF detected. OCR is needed to extract text from this image-based document.');
+      } else {
+        throw new Error('This PDF appears to contain no readable text content.');
+      }
     }
     
-    // Create Word document using html-docx-js
+    // Create Word document
     const docxBlob = await createWordDocument(extractedText);
     
-    console.log('Word document created successfully');
+    console.log('PDF to Word conversion completed successfully');
     return docxBlob;
     
   } catch (error) {
     console.error('PDF to Word conversion error:', error);
     
     if (error instanceof Error) {
-      if (error.message.includes('image-based') || error.message.includes('unreadable')) {
+      // Pass through specific error messages
+      if (error.message.includes('Scanned PDF detected') || 
+          error.message.includes('image-based') || 
+          error.message.includes('no readable text')) {
         throw error;
       }
-      if (error.message.includes('Invalid PDF')) {
+      if (error.message.includes('Invalid PDF') || error.message.includes('corrupted')) {
         throw new Error('The uploaded file is not a valid PDF document.');
+      }
+      if (error.message.includes('encrypted') || error.message.includes('password')) {
+        throw new Error('This PDF is password protected. Please provide an unlocked PDF.');
+      }
+      if (error.message.includes('Failed to create Word document')) {
+        throw error; // Pass through Word creation errors with details
       }
     }
     
@@ -331,6 +360,7 @@ async function createWordDocument(text: string): Promise<Blob> {
     const { Document, Packer, Paragraph, TextRun } = await import('docx');
     
     console.log('Creating Word document from extracted text...');
+    console.log('Text length:', text.length);
     
     // Split text into paragraphs and clean up
     const paragraphTexts = text
@@ -339,6 +369,11 @@ async function createWordDocument(text: string): Promise<Blob> {
       .map(p => p.trim().replace(/\n/g, ' ').replace(/\s+/g, ' '));
     
     console.log(`Creating ${paragraphTexts.length} paragraphs`);
+    
+    // If no paragraphs, create one with the full text
+    if (paragraphTexts.length === 0 && text.trim()) {
+      paragraphTexts.push(text.trim().replace(/\s+/g, ' '));
+    }
     
     // Create document paragraphs
     const docParagraphs = paragraphTexts.map(paragraphText => 
@@ -356,6 +391,21 @@ async function createWordDocument(text: string): Promise<Blob> {
       })
     );
     
+    // Ensure we have at least one paragraph
+    if (docParagraphs.length === 0) {
+      docParagraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "Converted from PDF",
+              size: 24,
+              font: "Times New Roman",
+            }),
+          ],
+        })
+      );
+    }
+    
     // Create the document
     const doc = new Document({
       sections: [{
@@ -364,9 +414,11 @@ async function createWordDocument(text: string): Promise<Blob> {
       }],
     });
     
+    console.log('Generating Word document buffer...');
+    
     // Generate the buffer
     const buffer = await Packer.toBuffer(doc);
-    console.log('Word document created successfully');
+    console.log('Word document created successfully, size:', buffer.length, 'bytes');
     
     return new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -374,7 +426,8 @@ async function createWordDocument(text: string): Promise<Blob> {
     
   } catch (error) {
     console.error('Error creating Word document:', error);
-    throw new Error('Failed to create Word document. Please try again.');
+    console.error('Error details:', error);
+    throw new Error('Failed to create Word document: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
 
