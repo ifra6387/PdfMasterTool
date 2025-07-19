@@ -129,13 +129,16 @@ def convert_pdf_to_powerpoint_professional(input_path, output_path):
             except Exception as img_error:
                 print(f"Could not extract image from page {page_num + 1}: {img_error}", file=sys.stderr)
         
+        # Get page count before closing
+        total_slides = pdf_doc.page_count
+        
         # Save PowerPoint presentation
         prs.save(output_path)
         pdf_doc.close()
         
         print(json.dumps({
             "success": True,
-            "message": f"PDF successfully converted to PowerPoint with {pdf_doc.page_count} slides."
+            "message": f"PDF successfully converted to PowerPoint with {total_slides} slides."
         }))
         return True
         

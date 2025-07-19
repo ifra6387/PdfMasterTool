@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Download, Loader2, FileText, Presentation } from 'lucide-react';
+import { Upload, Download, Loader2, FileText, Presentation, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 import { pdfToPowerPoint } from '@/utils/pdf-utils-v2';
 
 export default function PdfToPowerPoint() {
@@ -10,6 +11,7 @@ export default function PdfToPowerPoint() {
   const [isConverting, setIsConverting] = useState(false);
   const [convertedBlob, setConvertedBlob] = useState<Blob | null>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -84,6 +86,18 @@ export default function PdfToPowerPoint() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
+      {/* Navigation Header */}
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => setLocation('/')}
+          className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to All Tools
+        </Button>
+      </div>
+
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           PDF to PowerPoint Converter
