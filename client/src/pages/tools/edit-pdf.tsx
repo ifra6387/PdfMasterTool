@@ -817,9 +817,20 @@ export default function EditPdf() {
       });
     } catch (error) {
       console.error('PDF editing error:', error);
+      let errorMessage = error instanceof Error ? error.message : "Failed to edit PDF. Please try again.";
+      
+      // Provide specific guidance for common errors
+      if (errorMessage.includes('Field value too long')) {
+        errorMessage = "The edit operations contain too much data. Try reducing the number of operations or image sizes.";
+      } else if (errorMessage.includes('timeout')) {
+        errorMessage = "PDF editing took too long. Try with fewer operations or a smaller PDF.";
+      } else if (errorMessage.includes('Failed to start Python')) {
+        errorMessage = "PDF processing service unavailable. Please try again in a moment.";
+      }
+      
       toast({
         title: "PDF editing failed",
-        description: error instanceof Error ? error.message : "Failed to edit PDF. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

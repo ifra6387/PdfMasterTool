@@ -25,7 +25,9 @@ if (!fs.existsSync(uploadDir)) {
 const upload = multer({
   dest: uploadDir,
   limits: {
-    fileSize: 20 * 1024 * 1024, // 20MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit for PDF processing
+    fieldSize: 50 * 1024 * 1024, // 50MB limit for form fields (for base64 data)
+    fields: 100, // Increase field count limit
   },
   fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     const allowedTypes = [
@@ -1423,8 +1425,35 @@ app.post('/api/convert/add-page-numbers', upload.single('file'), async (req, res
   }
 });
 
+// Create special multer config for edit PDF with larger field limits
+const editPdfUpload = multer({
+  dest: uploadDir,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB file limit
+    fieldSize: 100 * 1024 * 1024, // 100MB field limit for large edit operations with images
+    fields: 200, // Increase field count for complex edit operations
+  },
+  fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'text/html'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
+
 // Edit PDF route
-app.post('/api/convert/edit-pdf', upload.single('file'), async (req, res) => {
+app.post('/api/convert/edit-pdf', editPdfUpload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "Please upload a valid PDF file." });

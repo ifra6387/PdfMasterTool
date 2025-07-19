@@ -6,8 +6,9 @@ import { initializeFileCleanup } from "./services/file-cleanup";
 
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Middleware - increased limits for PDF processing with large base64 data
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb', parameterLimit: 50000 }));
 
 app.use((req, res, next) => {
   const start = Date.now();
