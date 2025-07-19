@@ -9,7 +9,7 @@ import { SupabaseAuthProvider } from "./hooks/use-supabase-auth";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Tools from "@/pages/tools";
-import Tool from "@/pages/tool";
+
 import Processing from "@/pages/processing";
 import Download from "@/pages/download";
 import LoginStandalone from "@/pages/login-standalone";
@@ -27,15 +27,18 @@ function Router() {
           <Tools />
         </AuthGuard>
       )} />
-      <Route path="/tool/:toolName" component={() => (
-        <AuthGuard requireAuth={true}>
-          <Tool />
-        </AuthGuard>
-      )} />
+
       <Route path="/processing/:fileId" component={Processing} />
       <Route path="/download/:token" component={Download} />
       
       <Route path="/signin" component={LoginStandalone} />
+      <Route path="/login" component={() => { 
+        // Redirect /login to /signin
+        if (typeof window !== 'undefined') {
+          window.location.replace('/signin');
+        }
+        return null;
+      }} />
       <Route path="/signup" component={SignUpStandalone} />
       <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
