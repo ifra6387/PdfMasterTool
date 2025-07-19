@@ -568,10 +568,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pythonScript = path.join(process.cwd(), "server", "excel_to_pdf_converter.py");
       const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
       
+      // Create a temporary file with proper extension for Python script validation
+      const tempInputPath = path.join(path.dirname(req.file.path), req.file.originalname);
+      fs.copyFileSync(req.file.path, tempInputPath);
+      
       console.log(`Converting Excel to PDF: ${req.file.originalname}`);
       
       const result = await new Promise<string>((resolve, reject) => {
-        const python = spawn(pythonPath, [pythonScript, req.file!.path, outputPath], {
+        const python = spawn(pythonPath, [pythonScript, tempInputPath, outputPath], {
           env: { ...process.env, PYTHONPATH: path.join(process.cwd(), ".pythonlibs", "lib", "python3.11", "site-packages") }
         });
         
@@ -628,6 +632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       setTimeout(() => {
         try {
           fs.unlinkSync(req.file!.path);
+          fs.unlinkSync(tempInputPath);
           fs.unlinkSync(outputPath);
         } catch (err) {
           console.error('Cleanup error:', err);
@@ -665,10 +670,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pythonScript = path.join(process.cwd(), "server", "powerpoint_to_pdf_converter.py");
       const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
       
+      // Create a temporary file with proper extension for Python script validation
+      const tempInputPath = path.join(path.dirname(req.file.path), req.file.originalname);
+      fs.copyFileSync(req.file.path, tempInputPath);
+      
       console.log(`Converting PowerPoint to PDF: ${req.file.originalname}`);
       
       const result = await new Promise<string>((resolve, reject) => {
-        const python = spawn(pythonPath, [pythonScript, req.file!.path, outputPath], {
+        const python = spawn(pythonPath, [pythonScript, tempInputPath, outputPath], {
           env: { ...process.env, PYTHONPATH: path.join(process.cwd(), ".pythonlibs", "lib", "python3.11", "site-packages") }
         });
         
@@ -725,6 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       setTimeout(() => {
         try {
           fs.unlinkSync(req.file!.path);
+          fs.unlinkSync(tempInputPath);
           fs.unlinkSync(outputPath);
         } catch (err) {
           console.error('Cleanup error:', err);
