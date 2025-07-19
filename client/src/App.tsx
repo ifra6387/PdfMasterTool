@@ -29,6 +29,8 @@ import ProtectPDF from "@/pages/tools/protect-pdf";
 import UnlockPDF from "@/pages/tools/unlock-pdf";
 import PDFToExcel from "@/pages/tools/pdf-to-excel";
 import ExcelToPDF from "@/pages/tools/excel-to-pdf";
+import PowerPointToPDF from "@/pages/tools/powerpoint-to-pdf";
+import PDFToPowerPoint from "@/pages/tools/pdf-to-powerpoint";
 import PDFToHTML from "@/pages/tools/pdf-to-html";
 import HTMLToPDF from "@/pages/tools/html-to-pdf";
 
@@ -73,6 +75,8 @@ function Router() {
       <Route path="/tool/unlock" component={UnlockPDF} />
       <Route path="/tool/pdf-to-excel" component={PDFToExcel} />
       <Route path="/tool/excel-to-pdf" component={ExcelToPDF} />
+      <Route path="/tool/powerpoint-to-pdf" component={PowerPointToPDF} />
+      <Route path="/tool/pdf-to-powerpoint" component={PDFToPowerPoint} />
       <Route path="/tool/pdf-to-html" component={PDFToHTML} />
       <Route path="/tool/html-to-pdf" component={HTMLToPDF} />
 

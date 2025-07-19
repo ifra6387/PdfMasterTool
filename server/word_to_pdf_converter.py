@@ -266,10 +266,10 @@ def main():
         }))
         sys.exit(1)
     
-    if not input_path.lower().endswith('.docx'):
+    if not (input_path.lower().endswith('.docx') or input_path.lower().endswith('.doc')):
         print(json.dumps({
             "success": False,
-            "error": "Input file must be a .docx file"
+            "error": "Input file must be a .docx or .doc file"
         }))
         sys.exit(1)
     

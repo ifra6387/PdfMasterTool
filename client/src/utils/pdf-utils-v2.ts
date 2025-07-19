@@ -659,6 +659,81 @@ async function wordToPDFClientSide(file: File): Promise<Blob> {
   }
 }
 
+// Excel to PDF utility with server-side processing
+export async function excelToPDF(file: File): Promise<Blob> {
+  try {
+    // Use server-side conversion for professional quality
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('/api/convert/excel-to-pdf', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Server-side Excel to PDF conversion failed');
+    }
+    
+    return await response.blob();
+    
+  } catch (error) {
+    console.error('Excel to PDF error:', error);
+    throw new Error('Failed to convert Excel to PDF. Please ensure the file is a valid Excel document (.xlsx or .xls format).');
+  }
+}
+
+// PowerPoint to PDF utility with server-side processing
+export async function powerPointToPDF(file: File): Promise<Blob> {
+  try {
+    // Use server-side conversion for professional quality
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('/api/convert/powerpoint-to-pdf', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Server-side PowerPoint to PDF conversion failed');
+    }
+    
+    return await response.blob();
+    
+  } catch (error) {
+    console.error('PowerPoint to PDF error:', error);
+    throw new Error('Failed to convert PowerPoint to PDF. Please ensure the file is a valid PowerPoint presentation (.pptx or .ppt format).');
+  }
+}
+
+// PDF to PowerPoint utility with server-side processing
+export async function pdfToPowerPoint(file: File): Promise<Blob> {
+  try {
+    // Use server-side conversion for professional quality
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('/api/convert/pdf-to-powerpoint', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Server-side PDF to PowerPoint conversion failed');
+    }
+    
+    return await response.blob();
+    
+  } catch (error) {
+    console.error('PDF to PowerPoint error:', error);
+    throw new Error('Failed to convert PDF to PowerPoint. Please ensure the file is a valid PDF document.');
+  }
+}
+
 // PDF to Excel utility - New implementation
 export async function pdfToExcel(file: File): Promise<Blob> {
   try {
@@ -724,8 +799,8 @@ export async function pdfToExcel(file: File): Promise<Blob> {
   }
 }
 
-// Excel to PDF utility - New implementation
-export async function excelToPDF(file: File): Promise<Blob> {
+// Excel to PDF utility - Legacy implementation (kept for compatibility)
+async function excelToPDFLegacy(file: File): Promise<Blob> {
   try {
     const XLSX = await import('xlsx');
     const arrayBuffer = await file.arrayBuffer();

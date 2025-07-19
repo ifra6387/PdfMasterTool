@@ -537,6 +537,295 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excel to PDF conversion route
+  app.post("/api/convert/excel-to-pdf", upload.single('file'), async (req: MulterRequest, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No Excel file uploaded" });
+      }
+
+      if (!req.file.mimetype.includes('spreadsheetml') && 
+          !req.file.originalname.toLowerCase().endsWith('.xlsx') && 
+          !req.file.originalname.toLowerCase().endsWith('.xls')) {
+        return res.status(400).json({ message: "Please upload an Excel (.xlsx or .xls) file" });
+      }
+
+      const outputDir = path.join(process.cwd(), "outputs");
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      const originalName = path.parse(req.file.originalname).name;
+      const outputFilename = `${originalName}-converted-${Date.now()}.pdf`;
+      const outputPath = path.join(outputDir, outputFilename);
+
+      const pythonScript = path.join(process.cwd(), "server", "excel_to_pdf_converter.py");
+      const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+      
+      console.log(`Converting Excel to PDF: ${req.file.originalname}`);
+      
+      const result = await new Promise<string>((resolve, reject) => {
+        const python = spawn(pythonPath, [pythonScript, req.file!.path, outputPath], {
+          env: { ...process.env, PYTHONPATH: path.join(process.cwd(), ".pythonlibs", "lib", "python3.11", "site-packages") }
+        });
+        
+        let stdout = '';
+        let stderr = '';
+
+        python.stdout.on('data', (data) => {
+          const output = data.toString();
+          stdout += output;
+          console.log('Python stdout:', output);
+        });
+
+        python.stderr.on('data', (data) => {
+          const output = data.toString();
+          stderr += output;
+          console.log('Python stderr:', output);
+        });
+
+        python.on('close', (code) => {
+          console.log(`Python process exited with code: ${code}`);
+          if (code === 0) {
+            resolve(stdout);
+          } else {
+            reject(new Error(`Excel to PDF conversion failed (exit code ${code}): ${stderr || 'Unknown error'}`));
+          }
+        });
+
+        python.on('error', (err) => {
+          reject(new Error(`Failed to start Python process: ${err.message}`));
+        });
+      });
+
+      let conversionResult;
+      try {
+        conversionResult = JSON.parse(result);
+      } catch (e) {
+        throw new Error('Invalid response from Excel to PDF converter');
+      }
+
+      if (!conversionResult.success) {
+        return res.status(400).json({ message: conversionResult.error });
+      }
+
+      if (!fs.existsSync(outputPath)) {
+        return res.status(500).json({ message: "Excel to PDF conversion completed but output file not found" });
+      }
+
+      res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+      res.setHeader('Content-Type', 'application/pdf');
+      
+      const fileStream = fs.createReadStream(outputPath);
+      fileStream.pipe(res);
+
+      setTimeout(() => {
+        try {
+          fs.unlinkSync(req.file!.path);
+          fs.unlinkSync(outputPath);
+        } catch (err) {
+          console.error('Cleanup error:', err);
+        }
+      }, 30000);
+
+    } catch (error: any) {
+      console.error('Excel to PDF conversion error:', error);
+      res.status(500).json({ message: error.message || "Excel to PDF conversion failed" });
+    }
+  });
+
+  // PowerPoint to PDF conversion route
+  app.post("/api/convert/powerpoint-to-pdf", upload.single('file'), async (req: MulterRequest, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No PowerPoint file uploaded" });
+      }
+
+      if (!req.file.mimetype.includes('presentationml') && 
+          !req.file.originalname.toLowerCase().endsWith('.pptx') && 
+          !req.file.originalname.toLowerCase().endsWith('.ppt')) {
+        return res.status(400).json({ message: "Please upload a PowerPoint (.pptx or .ppt) file" });
+      }
+
+      const outputDir = path.join(process.cwd(), "outputs");
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      const originalName = path.parse(req.file.originalname).name;
+      const outputFilename = `${originalName}-converted-${Date.now()}.pdf`;
+      const outputPath = path.join(outputDir, outputFilename);
+
+      const pythonScript = path.join(process.cwd(), "server", "powerpoint_to_pdf_converter.py");
+      const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+      
+      console.log(`Converting PowerPoint to PDF: ${req.file.originalname}`);
+      
+      const result = await new Promise<string>((resolve, reject) => {
+        const python = spawn(pythonPath, [pythonScript, req.file!.path, outputPath], {
+          env: { ...process.env, PYTHONPATH: path.join(process.cwd(), ".pythonlibs", "lib", "python3.11", "site-packages") }
+        });
+        
+        let stdout = '';
+        let stderr = '';
+
+        python.stdout.on('data', (data) => {
+          const output = data.toString();
+          stdout += output;
+          console.log('Python stdout:', output);
+        });
+
+        python.stderr.on('data', (data) => {
+          const output = data.toString();
+          stderr += output;
+          console.log('Python stderr:', output);
+        });
+
+        python.on('close', (code) => {
+          console.log(`Python process exited with code: ${code}`);
+          if (code === 0) {
+            resolve(stdout);
+          } else {
+            reject(new Error(`PowerPoint to PDF conversion failed (exit code ${code}): ${stderr || 'Unknown error'}`));
+          }
+        });
+
+        python.on('error', (err) => {
+          reject(new Error(`Failed to start Python process: ${err.message}`));
+        });
+      });
+
+      let conversionResult;
+      try {
+        conversionResult = JSON.parse(result);
+      } catch (e) {
+        throw new Error('Invalid response from PowerPoint to PDF converter');
+      }
+
+      if (!conversionResult.success) {
+        return res.status(400).json({ message: conversionResult.error });
+      }
+
+      if (!fs.existsSync(outputPath)) {
+        return res.status(500).json({ message: "PowerPoint to PDF conversion completed but output file not found" });
+      }
+
+      res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+      res.setHeader('Content-Type', 'application/pdf');
+      
+      const fileStream = fs.createReadStream(outputPath);
+      fileStream.pipe(res);
+
+      setTimeout(() => {
+        try {
+          fs.unlinkSync(req.file!.path);
+          fs.unlinkSync(outputPath);
+        } catch (err) {
+          console.error('Cleanup error:', err);
+        }
+      }, 30000);
+
+    } catch (error: any) {
+      console.error('PowerPoint to PDF conversion error:', error);
+      res.status(500).json({ message: error.message || "PowerPoint to PDF conversion failed" });
+    }
+  });
+
+  // PDF to PowerPoint conversion route
+  app.post("/api/convert/pdf-to-powerpoint", upload.single('file'), async (req: MulterRequest, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No PDF file uploaded" });
+      }
+
+      if (!req.file.mimetype.includes('pdf') && !req.file.originalname.toLowerCase().endsWith('.pdf')) {
+        return res.status(400).json({ message: "Please upload a PDF file" });
+      }
+
+      const outputDir = path.join(process.cwd(), "outputs");
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      const originalName = path.parse(req.file.originalname).name;
+      const outputFilename = `${originalName}-converted-${Date.now()}.pptx`;
+      const outputPath = path.join(outputDir, outputFilename);
+
+      const pythonScript = path.join(process.cwd(), "server", "pdf_to_powerpoint_converter.py");
+      const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+      
+      console.log(`Converting PDF to PowerPoint: ${req.file.originalname}`);
+      
+      const result = await new Promise<string>((resolve, reject) => {
+        const python = spawn(pythonPath, [pythonScript, req.file!.path, outputPath], {
+          env: { ...process.env, PYTHONPATH: path.join(process.cwd(), ".pythonlibs", "lib", "python3.11", "site-packages") }
+        });
+        
+        let stdout = '';
+        let stderr = '';
+
+        python.stdout.on('data', (data) => {
+          const output = data.toString();
+          stdout += output;
+          console.log('Python stdout:', output);
+        });
+
+        python.stderr.on('data', (data) => {
+          const output = data.toString();
+          stderr += output;
+          console.log('Python stderr:', output);
+        });
+
+        python.on('close', (code) => {
+          console.log(`Python process exited with code: ${code}`);
+          if (code === 0) {
+            resolve(stdout);
+          } else {
+            reject(new Error(`PDF to PowerPoint conversion failed (exit code ${code}): ${stderr || 'Unknown error'}`));
+          }
+        });
+
+        python.on('error', (err) => {
+          reject(new Error(`Failed to start Python process: ${err.message}`));
+        });
+      });
+
+      let conversionResult;
+      try {
+        conversionResult = JSON.parse(result);
+      } catch (e) {
+        throw new Error('Invalid response from PDF to PowerPoint converter');
+      }
+
+      if (!conversionResult.success) {
+        return res.status(400).json({ message: conversionResult.error });
+      }
+
+      if (!fs.existsSync(outputPath)) {
+        return res.status(500).json({ message: "PDF to PowerPoint conversion completed but output file not found" });
+      }
+
+      res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+      
+      const fileStream = fs.createReadStream(outputPath);
+      fileStream.pipe(res);
+
+      setTimeout(() => {
+        try {
+          fs.unlinkSync(req.file!.path);
+          fs.unlinkSync(outputPath);
+        } catch (err) {
+          console.error('Cleanup error:', err);
+        }
+      }, 30000);
+
+    } catch (error: any) {
+      console.error('PDF to PowerPoint conversion error:', error);
+      res.status(500).json({ message: error.message || "PDF to PowerPoint conversion failed" });
+    }
+  });
+
   // Download routes
   app.get("/api/download/:token", async (req, res) => {
     try {

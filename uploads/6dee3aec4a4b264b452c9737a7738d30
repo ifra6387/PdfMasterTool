@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iLovePDF Clone - All PDF Tools in One Place</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-danger" href="/">
+                <i class="fas fa-file-pdf me-2"></i>iLovePDF Clone
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-tools me-1"></i>Tools
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/tools/merge">
+                                <i class="fas fa-file-pdf text-primary me-2"></i>Merge PDF
+                            </a></li>
+                            <li><a class="dropdown-item" href="/tools/split">
+                                <i class="fas fa-scissors text-success me-2"></i>Split PDF
+                            </a></li>
+                            <li><a class="dropdown-item" href="/tools/compress">
+                                <i class="fas fa-compress-arrows-alt text-warning me-2"></i>Compress PDF
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/tools/convert">
+                                <i class="fas fa-exchange-alt text-info me-2"></i>Convert Files
+                            </a></li>
+                            <li><a class="dropdown-item" href="/tools/edit">
+                                <i class="fas fa-edit text-secondary me-2"></i>Edit PDF
+                            </a></li>
+                            <li><a class="dropdown-item" href="/tools/sign">
+                                <i class="fas fa-signature text-dark me-2"></i>Sign PDF
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/tools/protect">
+                                <i class="fas fa-lock text-danger me-2"></i>Protect PDF
+                            </a></li>
+                            <li><a class="dropdown-item" href="/tools/unlock">
+                                <i class="fas fa-unlock text-success me-2"></i>Unlock PDF
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <!-- Language Selector -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe me-1"></i>English
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">English</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('ur')">اردو</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')">العربية</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Theme Toggle -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="toggleTheme()">
+                            <i class="fas fa-moon" id="theme-icon"></i>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/login">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-danger btn-sm ms-2" href="/auth/register">
+                            <i class="fas fa-user-plus me-1"></i>Sign Up
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    
+        
+            <div class="container mt-3">
+                
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        File not found or has expired
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                
+            </div>
+        
+    
+
+    <!-- Main Content -->
+    <main>
+        
+<!-- Hero Section -->
+<section class="hero-section bg-gradient-danger text-white py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">All PDF tools in one place</h1>
+                <p class="lead mb-4">
+                    Merge, split, compress, convert, edit, and sign PDFs with our powerful online tools. 
+                    Fast, secure, and completely free to use.
+                </p>
+                
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-heart text-light me-2"></i>
+                        <span>Free to use</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-bolt text-light me-2"></i>
+                        <span>Fast processing</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-desktop text-light me-2"></i>
+                        <span>Offline tools</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-shield-alt text-light me-2"></i>
+                        <span>Secure & private</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <!-- Quick Upload Area -->
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-4">
+                        <h5 class="text-dark mb-3">
+                            <i class="fas fa-cloud-upload-alt text-danger me-2"></i>
+                            Quick Upload
+                        </h5>
+                        
+                        <div id="hero-dropzone" class="dropzone-area text-center p-4 border-2 border-dashed rounded">
+                            <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-3">
+                                Drag and drop your PDF files here<br>
+                                or click to browse
+                            </p>
+                            <input type="file" id="hero-file-input" multiple accept=".pdf" class="d-none">
+                            <button type="button" class="btn btn-danger" onclick="document.getElementById('hero-file-input').click()">
+                                <i class="fas fa-plus me-2"></i>Select Files
+                            </button>
+                        </div>
+                        
+                        <div id="hero-file-list" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tools Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Choose Your Tool</h2>
+            <p class="lead text-muted">Professional PDF tools for every need</p>
+        </div>
+        
+        <div class="row g-4">
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card tool-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="tool-icon mb-3">
+                            <i class="fas fa-file-pdf fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Merge PDF</h5>
+                        <p class="card-text text-muted mb-4">Combine multiple PDF files into one document</p>
+                        <a href="/tools/merge" class="btn btn-primary btn-lg w-100">
+                            Choose Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card tool-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="tool-icon mb-3">
+                            <i class="fas fa-scissors fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Split PDF</h5>
+                        <p class="card-text text-muted mb-4">Extract pages from a PDF document</p>
+                        <a href="/tools/split" class="btn btn-success btn-lg w-100">
+                            Choose Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card tool-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="tool-icon mb-3">
+                            <i class="fas fa-compress-arrows-alt fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Compress PDF</h5>
+                        <p class="card-text text-muted mb-4">Reduce file size without losing quality</p>
+                        <a href="/tools/compress" class="btn btn-warning btn-lg w-100">
+                            Choose Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card tool-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="tool-icon mb-3">
+                            <i class="fas fa-exchange-alt fa-3x text-info"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Convert to PDF</h5>
+                        <p class="card-text text-muted mb-4">Convert Word, Excel, PowerPoint, or images to PDF</p>
+                        <a href="/tools/convert" class="btn btn-info btn-lg w-100">
+                            Choose Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card tool-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="tool-icon mb-3">
+                            <i class="fas fa-edit fa-3x text-secondary"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Edit PDF</h5>
+                        <p class="card-text text-muted mb-4">Add watermarks, rotate pages, add page numbers</p>
+                        <a href="/tools/edit" class="btn btn-secondary btn-lg w-100">
+                            Choose Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card tool-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="tool-icon mb-3">
+                            <i class="fas fa-signature fa-3x text-dark"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Sign PDF</h5>
+                        <p class="card-text text-muted mb-4">Add your signature to PDF documents</p>
+                        <a href="/tools/sign" class="btn btn-dark btn-lg w-100">
+                            Choose Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card tool-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="tool-icon mb-3">
+                            <i class="fas fa-lock fa-3x text-danger"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Protect PDF</h5>
+                        <p class="card-text text-muted mb-4">Add password protection to your PDF</p>
+                        <a href="/tools/protect" class="btn btn-danger btn-lg w-100">
+                            Choose Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card tool-card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="tool-icon mb-3">
+                            <i class="fas fa-unlock fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title fw-bold">Unlock PDF</h5>
+                        <p class="card-text text-muted mb-4">Remove password protection from PDF</p>
+                        <a href="/tools/unlock" class="btn btn-success btn-lg w-100">
+                            Choose Files
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-6 fw-bold mb-4">Why Choose Our PDF Tools?</h2>
+                
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="feature-item">
+                            <i class="fas fa-heart fa-2x text-danger mb-3"></i>
+                            <h5>Free to Use</h5>
+                            <p class="text-muted">All tools are completely free with no hidden costs or subscriptions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="feature-item">
+                            <i class="fas fa-bolt fa-2x text-warning mb-3"></i>
+                            <h5>Fast Processing</h5>
+                            <p class="text-muted">Lightning-fast processing with optimized algorithms for quick results.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="feature-item">
+                            <i class="fas fa-shield-alt fa-2x text-success mb-3"></i>
+                            <h5>Secure & Private</h5>
+                            <p class="text-muted">Your files are processed locally and automatically deleted after processing.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="feature-item">
+                            <i class="fas fa-desktop fa-2x text-info mb-3"></i>
+                            <h5>No Installation</h5>
+                            <p class="text-muted">Works directly in your browser without any software installation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-danger text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h3 class="fw-bold mb-2">Ready to get started?</h3>
+                <p class="mb-0">Join thousands of users who trust our PDF tools for their document needs.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="/auth/register" class="btn btn-light btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Create Free Account
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Branding Section -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-brand">
+                        <h5 class="fw-bold text-danger mb-3">
+                            <i class="fas fa-file-pdf me-2"></i>iLovePDF Clone
+                        </h5>
+                        <p class="text-light-emphasis mb-3">
+                            Your trusted online PDF toolkit
+                        </p>
+                        <p class="text-muted small">
+                            Professional PDF tools for all your document needs. 
+                            Merge, split, compress, convert, and edit PDFs with ease.
+                        </p>
+                        <div class="social-links mt-3">
+                            <a href="#" class="text-muted me-3" title="Facebook">
+                                <i class="fab fa-facebook fa-lg"></i>
+                            </a>
+                            <a href="#" class="text-muted me-3" title="Twitter">
+                                <i class="fab fa-twitter fa-lg"></i>
+                            </a>
+                            <a href="#" class="text-muted me-3" title="LinkedIn">
+                                <i class="fab fa-linkedin fa-lg"></i>
+                            </a>
+                            <a href="#" class="text-muted" title="GitHub">
+                                <i class="fab fa-github fa-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tools Column -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="fw-bold text-white mb-3">Tools</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2">
+                            <a href="/tools/merge" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-file-pdf me-2 text-primary"></i>Merge PDF
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/tools/split" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-scissors me-2 text-success"></i>Split PDF
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/tools/compress" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-compress-arrows-alt me-2 text-warning"></i>Compress PDF
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/tools/convert" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-exchange-alt me-2 text-info"></i>PDF to Word
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/tools/convert" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-file-word me-2 text-primary"></i>Word to PDF
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/tools/unlock" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-unlock me-2 text-success"></i>Unlock PDF
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Features Column -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="fw-bold text-white mb-3">Features</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2">
+                            <span class="text-muted">
+                                <i class="fas fa-heart me-2 text-danger"></i>100% Free
+                            </span>
+                        </li>
+                        <li class="mb-2">
+                            <span class="text-muted">
+                                <i class="fas fa-bolt me-2 text-warning"></i>Fast & Secure
+                            </span>
+                        </li>
+                        <li class="mb-2">
+                            <span class="text-muted">
+                                <i class="fas fa-user-slash me-2 text-info"></i>No signup needed
+                            </span>
+                        </li>
+                        <li class="mb-2">
+                            <span class="text-muted">
+                                <i class="fas fa-mobile-alt me-2 text-success"></i>Works on all devices
+                            </span>
+                        </li>
+                        <li class="mb-2">
+                            <span class="text-muted">
+                                <i class="fas fa-shield-alt me-2 text-primary"></i>Privacy Protected
+                            </span>
+                        </li>
+                        <li class="mb-2">
+                            <span class="text-muted">
+                                <i class="fas fa-clock me-2 text-secondary"></i>24/7 Available
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Company Column -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="fw-bold text-white mb-3">Company</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2">
+                            <a href="/about" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-info-circle me-2"></i>About Us
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/contact" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-envelope me-2"></i>Contact
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/privacy" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-user-shield me-2"></i>Privacy Policy
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="/terms" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-file-contract me-2"></i>Terms of Service
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-headset me-2"></i>Support
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-blog me-2"></i>Blog
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Languages Column -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="fw-bold text-white mb-3">Languages</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2">
+                            <a href="#" onclick="changeLanguage('en')" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-globe me-2"></i>English
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" onclick="changeLanguage('ur')" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-globe me-2"></i>اردو (Urdu)
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" onclick="changeLanguage('es')" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-globe me-2"></i>Español (Spanish)
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" onclick="changeLanguage('ar')" class="text-muted text-decoration-none hover-link">
+                                <i class="fas fa-globe me-2"></i>العربية (Arabic)
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <!-- Newsletter Signup -->
+                    <div class="mt-4">
+                        <h6 class="fw-bold text-white mb-3">Stay Updated</h6>
+                        <div class="input-group input-group-sm">
+                            <input type="email" class="form-control bg-secondary border-0 text-light" 
+                                   placeholder="Enter your email" style="background-color: #495057 !important;">
+                            <button class="btn btn-danger btn-sm" type="button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-2">Get updates on new features and tools</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Bar -->
+            <hr class="my-4 border-secondary">
+            
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <p class="text-muted mb-2 mb-md-0">
+                        © 2025 iLovePDF Clone. All rights reserved.
+                    </p>
+                    <small class="text-muted">
+                        Built with ❤️ for PDF enthusiasts worldwide
+                    </small>
+                </div>
+                <div class="col-lg-6 col-md-4 text-md-end">
+                    <div class="d-flex flex-wrap justify-content-md-end gap-3 mt-2 mt-md-0">
+                        <span class="badge bg-success text-dark fw-normal">
+                            <i class="fas fa-shield-alt me-1"></i>SSL Secured
+                        </span>
+                        <span class="badge bg-primary text-dark fw-normal">
+                            <i class="fas fa-bolt me-1"></i>Fast Processing
+                        </span>
+                        <span class="badge bg-danger text-white fw-normal">
+                            <i class="fas fa-heart me-1"></i>100% Free
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/js/main.js"></script>
+    
+    
+<script src="/static/js/file-upload.js"></script>
+<script>
+// Initialize hero dropzone
+$(document).ready(function() {
+    initializeHeroDropzone();
+});
+
+function initializeHeroDropzone() {
+    const dropzone = $('#hero-dropzone');
+    const fileInput = $('#hero-file-input');
+    const fileList = $('#hero-file-list');
+    
+    // Drag and drop events
+    dropzone.on('dragover dragenter', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).addClass('dragover');
+    });
+    
+    dropzone.on('dragleave dragend drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('dragover');
+    });
+    
+    dropzone.on('drop', function(e) {
+        const files = e.originalEvent.dataTransfer.files;
+        handleHeroFiles(files);
+    });
+    
+    // Click to upload
+    dropzone.on('click', function() {
+        fileInput.click();
+    });
+    
+    fileInput.on('change', function() {
+        handleHeroFiles(this.files);
+    });
+}
+
+function handleHeroFiles(files) {
+    const fileList = $('#hero-file-list');
+    fileList.empty();
+    
+    if (files.length > 0) {
+        const fileArray = Array.from(files);
+        
+        // Show file list
+        fileArray.forEach((file, index) => {
+            const fileItem = $(`
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div>
+                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                        <span class="fw-medium">${file.name}</span>
+                        <small class="text-muted ms-2">(${formatFileSize(file.size)})</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeHeroFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `);
+            fileList.append(fileItem);
+        });
+        
+        // Show action buttons
+        const actionButtons = $(`
+            <div class="mt-3 d-flex gap-2">
+                <button type="button" class="btn btn-success" onclick="suggestTool()">
+                    <i class="fas fa-magic me-2"></i>Suggest Tool
+                </button>
+                <button type="button" class="btn btn-primary" onclick="showAllTools()">
+                    <i class="fas fa-tools me-2"></i>View All Tools
+                </button>
+            </div>
+        `);
+        fileList.append(actionButtons);
+    }
+}
+
+function removeHeroFile(index) {
+    // Implementation for removing files from the list
+    console.log('Remove file at index:', index);
+}
+
+function suggestTool() {
+    // Simple tool suggestion based on file count
+    const fileCount = $('#hero-file-list .border-bottom').length;
+    
+    if (fileCount >= 2) {
+        window.location.href = "/tools/merge";
+    } else {
+        // Show modal with tool options
+        showToolSuggestionModal();
+    }
+}
+
+function showAllTools() {
+    $('html, body').animate({
+        scrollTop: $('.tool-card').first().offset().top - 100
+    }, 500);
+}
+
+function showToolSuggestionModal() {
+    // Create and show modal with tool suggestions
+    const modal = $(`
+        <div class="modal fade" id="toolSuggestionModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">What would you like to do?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-grid gap-3">
+                            <a href="/tools/split" class="btn btn-outline-success btn-lg">
+                                <i class="fas fa-scissors me-2"></i>Split PDF
+                            </a>
+                            <a href="/tools/compress" class="btn btn-outline-warning btn-lg">
+                                <i class="fas fa-compress-arrows-alt me-2"></i>Compress PDF
+                            </a>
+                            <a href="/tools/edit" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-edit me-2"></i>Edit PDF
+                            </a>
+                            <a href="/tools/convert" class="btn btn-outline-info btn-lg">
+                                <i class="fas fa-exchange-alt me-2"></i>Convert Files
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+    
+    $('body').append(modal);
+    const bootstrapModal = new bootstrap.Modal(modal[0]);
+    bootstrapModal.show();
+    
+    modal.on('hidden.bs.modal', function() {
+        modal.remove();
+    });
+}
+</script>
+
+</body>
+</html>
