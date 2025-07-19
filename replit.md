@@ -17,6 +17,14 @@ Preferred communication style: Simple, everyday language.
   - **Professional Typography**: Maintains font sizes, bold/italic styling, and paragraph formatting
   - **Advanced Table Support**: Preserves complex table structures with proper row/column alignment
   - **Multi-Processing**: Utilizes all CPU cores for fast conversion of large documents
+- **BREAKTHROUGH: Professional PDF to HTML Converter with OCR**: Advanced HTML conversion supporting both text and scanned PDFs
+  - **PyMuPDF Integration**: High-quality text extraction with positioning data for layout preservation
+  - **Tesseract OCR Support**: Automatic detection and processing of scanned/image-based PDFs
+  - **Image Preprocessing**: OpenCV-based enhancement for better OCR accuracy
+  - **Layout Preservation**: Maintains fonts, spacing, images, and visual hierarchy in HTML output
+  - **Multi-Page Support**: Professional pagination with page-specific styling
+  - **Smart Fallback**: Client-side processing when server unavailable with quality notifications
+  - **Professional Styling**: Royal Blue theme with responsive design and print support
 - **PDF to Word Backend Implementation**: Fixed broken PDF to Word conversion with Node.js/Express backend
   - Server-side PDF processing using `pdf-parse` for text extraction and `docx` for Word document creation
   - `/api/pdf-to-word` endpoint with 20MB file validation and proper error handling

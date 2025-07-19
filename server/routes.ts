@@ -322,6 +322,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PDF to HTML conversion route (Python-based with OCR support)
+  app.post("/api/convert/pdf-to-html", upload.single('file'), async (req: MulterRequest, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No PDF file uploaded" });
+      }
+
+      if (req.file.mimetype !== 'application/pdf') {
+        return res.status(400).json({ message: "Please upload a PDF file" });
+      }
+
+      // Create output directory
+      const outputDir = path.join(process.cwd(), "outputs");
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      // Generate output filename
+      const originalName = path.parse(req.file.originalname).name;
+      const outputFilename = `${originalName}-converted-${Date.now()}.html`;
+      const outputPath = path.join(outputDir, outputFilename);
+
+      // Run advanced Python HTML converter with OCR support
+      const pythonScript = path.join(process.cwd(), "server", "pdf_to_html_advanced.py");
+      const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+      
+      console.log(`Converting PDF to HTML: ${req.file.originalname}`);
+      console.log(`Python path: ${pythonPath}`);
+      console.log(`Script path: ${pythonScript}`);
+      console.log(`Output path: ${outputPath}`);
+      
+      const result = await new Promise<string>((resolve, reject) => {
+        const python = spawn(pythonPath, [pythonScript, req.file!.path, outputPath], {
+          env: { ...process.env, PYTHONPATH: path.join(process.cwd(), ".pythonlibs", "lib", "python3.11", "site-packages") }
+        });
+        
+        let stdout = '';
+        let stderr = '';
+
+        python.stdout.on('data', (data) => {
+          const output = data.toString();
+          stdout += output;
+          console.log('Python stdout:', output);
+        });
+
+        python.stderr.on('data', (data) => {
+          const output = data.toString();
+          stderr += output;
+          console.log('Python stderr:', output);
+        });
+
+        python.on('close', (code) => {
+          console.log(`Python process exited with code: ${code}`);
+          if (code === 0) {
+            resolve(stdout);
+          } else {
+            console.error('Python HTML conversion failed:', stderr);
+            reject(new Error(`HTML conversion failed (exit code ${code}): ${stderr || 'Unknown error'}`));
+          }
+        });
+
+        python.on('error', (err) => {
+          console.error('Python process error:', err);
+          reject(new Error(`Failed to start Python process: ${err.message}`));
+        });
+      });
+
+      // Parse the result
+      let conversionResult;
+      try {
+        conversionResult = JSON.parse(result);
+      } catch (e) {
+        throw new Error('Invalid response from HTML converter');
+      }
+
+      if (!conversionResult.success) {
+        return res.status(400).json({ message: conversionResult.error });
+      }
+
+      // Check if output file exists
+      if (!fs.existsSync(outputPath)) {
+        return res.status(500).json({ message: "HTML conversion completed but output file not found" });
+      }
+
+      // Return the converted file
+      res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+      res.setHeader('Content-Type', 'text/html');
+      
+      const fileStream = fs.createReadStream(outputPath);
+      fileStream.pipe(res);
+
+      // Cleanup input file after a delay
+      setTimeout(() => {
+        try {
+          fs.unlinkSync(req.file!.path);
+          fs.unlinkSync(outputPath);
+        } catch (err) {
+          console.error('Cleanup error:', err);
+        }
+      }, 30000); // 30 seconds delay
+
+    } catch (error: any) {
+      console.error('PDF to HTML conversion error:', error);
+      res.status(500).json({ message: error.message || "HTML conversion failed" });
+    }
+  });
+
   // Download routes
   app.get("/api/download/:token", async (req, res) => {
     try {

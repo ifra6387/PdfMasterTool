@@ -742,8 +742,36 @@ export async function excelToPDF(file: File): Promise<Blob> {
   }
 }
 
-// PDF to HTML utility - New implementation
+// PDF to HTML utility with server-side OCR support
 export async function pdfToHtml(file: File): Promise<Blob> {
+  try {
+    // Use server-side conversion with OCR support for professional quality
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('/api/convert/pdf-to-html', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Server-side HTML conversion failed');
+    }
+    
+    // Return the HTML blob directly from server
+    return await response.blob();
+    
+  } catch (error) {
+    console.error('PDF to HTML error:', error);
+    
+    // Fallback to client-side conversion if server fails
+    return pdfToHtmlClientSide(file);
+  }
+}
+
+// Fallback client-side PDF to HTML conversion
+async function pdfToHtmlClientSide(file: File): Promise<Blob> {
   try {
     const pdfjsLib = await initializePdfJs();
     const arrayBuffer = await file.arrayBuffer();
@@ -755,16 +783,56 @@ export async function pdfToHtml(file: File): Promise<Blob> {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Converted PDF Document</title>
+    <title>PDF to HTML Conversion (Client-side Fallback)</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
-        .page { margin-bottom: 50px; page-break-after: always; }
-        .page-number { color: #666; font-size: 12px; margin-bottom: 20px; }
-        h1, h2, h3 { color: #333; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            margin: 0; 
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .page { 
+            margin-bottom: 40px; 
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            page-break-after: always; 
+        }
+        .page-number { 
+            color: #3B82F6; 
+            font-size: 14px; 
+            font-weight: bold;
+            margin-bottom: 20px; 
+            border-bottom: 2px solid #3B82F6;
+            padding-bottom: 5px;
+        }
+        h1, h2, h3 { color: #333; margin: 15px 0 10px 0; }
         p { margin-bottom: 10px; }
+        .fallback-notice {
+            background: #FEF3C7;
+            border: 1px solid #F59E0B;
+            color: #92400E;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1 style="color: #3B82F6; text-align: center;">PDF to HTML Conversion</h1>
+        <div class="fallback-notice">
+            <strong>Note:</strong> Using client-side conversion. For better quality with OCR support for scanned documents, server processing is recommended.
+        </div>
 `;
 
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
