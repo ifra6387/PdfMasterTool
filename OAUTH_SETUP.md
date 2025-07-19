@@ -1,8 +1,12 @@
 # Google OAuth Setup for Replit
 
-## Redirect URI Mismatch Fix
+## Fixing iframe Restrictions & Redirect URI Issues
 
-When setting up Google OAuth with Supabase on Replit, you need to configure the correct redirect URIs in your Google Cloud Console.
+When using Google OAuth with Supabase on Replit, you may encounter two main issues:
+1. **iframe Restrictions**: Google blocks authentication inside iframes for security
+2. **Redirect URI Mismatch**: URIs in Google Console don't match your Replit domain
+
+This guide addresses both issues with popup-based authentication.
 
 ### Required Redirect URIs
 
@@ -88,11 +92,23 @@ After configuration:
 3. Check browser console for any remaining errors
 4. Verify the redirect works properly
 
-### Common Issues
+### Common Issues & Solutions
 
-- **redirect_uri_mismatch**: URI not added to Google Console
+- **iframe blocking**: "accounts.google.com refused to connect"
+  - Solution: App now uses popup-based authentication
+  - Alternative: Open app in new tab instead of iframe
+
+- **redirect_uri_mismatch**: URI not added to Google Console  
+  - Solution: Add all required URIs to Google Cloud Console
+
+- **Popup blocked**: Browser blocks popup windows
+  - Solution: Allow popups for your Replit domain
+
 - **invalid_client**: Wrong Client ID or Secret
+  - Solution: Verify credentials in Supabase settings
+
 - **access_denied**: User cancelled or permissions issue
+  - Solution: Ensure proper OAuth scopes are configured
 
 ### Environment Variables
 

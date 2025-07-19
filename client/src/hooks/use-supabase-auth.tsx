@@ -126,23 +126,69 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Get the current URL origin for Replit
-      const currentOrigin = window.location.origin;
-      
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Use popup-based OAuth to avoid iframe restrictions
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${currentOrigin}/dashboard`,
+          redirectTo: `${window.location.origin}/dashboard`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          }
+          },
+          // Force popup instead of redirect to avoid iframe issues
+          skipBrowserRedirect: false
         }
       });
 
       if (error) {
         console.error('OAuth sign in error:', error);
         throw error;
+      }
+
+      // For popup-based auth, we need to handle the response differently
+      if (data?.url) {
+        // Open OAuth URL in a popup window
+        const popup = window.open(
+          data.url,
+          'oauth-popup',
+          'width=500,height=600,scrollbars=yes,resizable=yes'
+        );
+
+        // Listen for the popup to close or receive a message
+        return new Promise((resolve, reject) => {
+          const checkClosed = setInterval(() => {
+            if (popup?.closed) {
+              clearInterval(checkClosed);
+              // Check if authentication was successful
+              supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
+                if (sessionError) {
+                  reject(sessionError);
+                } else if (sessionData.session) {
+                  // Update local state
+                  setUser(sessionData.session.user);
+                  // Save to localStorage
+                  localStorage.setItem('supabase_session', JSON.stringify({
+                    user: sessionData.session.user,
+                    session: sessionData.session,
+                    timestamp: Date.now()
+                  }));
+                  resolve(sessionData.session);
+                } else {
+                  reject(new Error('Authentication was cancelled or failed'));
+                }
+              });
+            }
+          }, 1000);
+
+          // Timeout after 5 minutes
+          setTimeout(() => {
+            clearInterval(checkClosed);
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+            reject(new Error('Authentication timeout'));
+          }, 300000);
+        });
       }
     } catch (error) {
       console.error('OAuth sign in failed:', error);
