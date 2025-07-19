@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeFileCleanup } from "./services/file-cleanup";
+import pdfToWordRouter from "./routes/pdf-to-word";
 
 
 const app = express();
@@ -39,6 +40,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Add PDF to Word route
+  app.use(pdfToWordRouter);
+  
   const server = await registerRoutes(app);
   
   // Initialize database tables on startup
