@@ -31,7 +31,7 @@ import PDFToExcel from "@/pages/tools/pdf-to-excel";
 import ExcelToPDF from "@/pages/tools/excel-to-pdf";
 import PDFToHTML from "@/pages/tools/pdf-to-html";
 import HTMLToPDF from "@/pages/tools/html-to-pdf";
-import PDFToWordBackend from "@/pages/tools/pdf-to-word-backend";
+
 
 function Router() {
   return (
@@ -75,7 +75,7 @@ function Router() {
       <Route path="/tool/excel-to-pdf" component={ExcelToPDF} />
       <Route path="/tool/pdf-to-html" component={PDFToHTML} />
       <Route path="/tool/html-to-pdf" component={HTMLToPDF} />
-      <Route path="/tool/pdf-to-word-backend" component={PDFToWordBackend} />
+
       
       {/* Alternative routes with /tools/ prefix */}
       <Route path="/tools/merge" component={MergePDF} />
@@ -91,7 +91,7 @@ function Router() {
       <Route path="/tools/excel-to-pdf" component={ExcelToPDF} />
       <Route path="/tools/pdf-to-html" component={PDFToHTML} />
       <Route path="/tools/html-to-pdf" component={HTMLToPDF} />
-      <Route path="/tools/pdf-to-word-backend" component={PDFToWordBackend} />
+
       
       {/* Fallback for other tools */}
       <Route path="/tool/:toolName" component={ToolPlaceholder} />
