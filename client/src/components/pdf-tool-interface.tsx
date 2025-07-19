@@ -137,12 +137,18 @@ export default function PDFToolInterface({
       const url = URL.createObjectURL(result);
       setDownloadUrl(url);
       
-      // Generate appropriate filename
-      const timestamp = new Date().toISOString().split('T')[0];
-      const extension = toolName.includes('pdf') ? 'pdf' : 
-                      toolName.includes('word') ? 'docx' :
-                      toolName.includes('jpg') ? 'jpg' : 'zip';
-      setDownloadFileName(`${toolName}-${timestamp}.${extension}`);
+      // Generate appropriate filename based on tool and original file
+      const originalFileName = selectedFiles[0]?.name || 'document';
+      const baseName = originalFileName.replace(/\.[^/.]+$/, ''); // Remove extension
+      
+      let extension = 'pdf';
+      if (toolName === 'pdf-to-word') extension = 'docx';
+      else if (toolName === 'pdf-to-excel') extension = 'xlsx';
+      else if (toolName === 'pdf-to-jpg' || toolName === 'pdf-to-png') extension = 'zip';
+      else if (toolName === 'pdf-to-html') extension = 'html';
+      else if (toolName.includes('to-pdf')) extension = 'pdf';
+      
+      setDownloadFileName(`${baseName}-converted.${extension}`);
       
       setStatus('success');
     } catch (err) {
