@@ -311,7 +311,108 @@ export default function Tools() {
             </div>
           ))}
         </div>
+
+        {/* Call to Action Section */}
+        <section className="py-16 mt-16 bg-primary/5 dark:bg-primary/10 rounded-3xl">
+          <div className="text-center max-w-4xl mx-auto px-6">
+            <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 dark:text-white mb-6">
+              Start using all tools now — no installation required
+            </h2>
+            <p className="text-xl text-muted-foreground mb-8">
+              Upload your PDF and get started with any of our professional tools instantly
+            </p>
+            <Button 
+              size="lg"
+              onClick={() => document.querySelector('.group')?.scrollIntoView({ behavior: 'smooth' })}
+              className="inline-flex items-center px-8 py-4 text-lg font-heading font-semibold bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors shadow-lg"
+            >
+              Get Started
+              <Upload className="ml-2 w-5 h-5" />
+            </Button>
+          </div>
+        </section>
+
+        {/* Account Info Section */}
+        <section className="py-16 mt-16">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/50 p-8">
+              <div className="flex flex-col md:flex-row items-center justify-between">
+                <div className="flex items-center space-x-4 mb-6 md:mb-0">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xl font-heading font-bold">
+                      {user?.email?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-heading font-semibold text-slate-900 dark:text-white">
+                      Account Information
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="text-right mr-4">
+                    <p className="text-sm text-muted-foreground">Theme</p>
+                    <p className="font-medium text-slate-700 dark:text-slate-300">
+                      {theme === 'dark' ? 'Dark' : 'Light'}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="p-3 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                  >
+                    {theme === "dark" ? (
+                      <Sun className="w-6 h-6 text-yellow-500" />
+                    ) : (
+                      <Moon className="w-6 h-6 text-slate-600" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trusted by Millions Section */}
+        <section className="py-16 mt-16 text-center bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm rounded-3xl">
+          <div className="max-w-4xl mx-auto px-6">
+            <h2 className="text-3xl md:text-4xl font-bold font-heading font-semibold text-slate-900 dark:text-white mb-6">
+              The PDF software trusted by millions of users
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+              iLovePDF is your number one web app for editing PDF with ease. Enjoy all the tools you need to work efficiently with your digital documents while keeping your data safe and secure.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <span className="bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded-full inline-block mx-2">
+                ISO27001 Certified
+              </span>
+              <span className="bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded-full inline-block mx-2">
+                Secure HTTPS
+              </span>
+              <span className="bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded-full inline-block mx-2">
+                PDF Association Member
+              </span>
+            </div>
+          </div>
+        </section>
       </main>
+
+      {/* Footer Section */}
+      <footer className="text-xs text-gray-400 dark:text-gray-500 text-center py-4 border-t border-slate-200 dark:border-slate-700">
+        <div className="max-w-7xl mx-auto px-4">
+          <a href="#" className="hover:text-primary transition-colors">About</a>
+          {' · '}
+          <a href="#" className="hover:text-primary transition-colors">Terms</a>
+          {' · '}
+          <a href="#" className="hover:text-primary transition-colors">Privacy</a>
+          {' · '}
+          <a href="#" className="hover:text-primary transition-colors">Contact</a>
+        </div>
+      </footer>
     </div>
   );
 }
