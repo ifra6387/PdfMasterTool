@@ -94,15 +94,21 @@ After configuration:
 
 ### Common Issues & Solutions
 
-- **iframe blocking**: "accounts.google.com refused to connect"
-  - Solution: App now uses popup-based authentication
-  - Alternative: Open app in new tab instead of iframe
+- **Access token in URL not processed**: User sees tokens in URL but isn't logged in
+  - Solution: App now automatically processes URL hash parameters and sets session
+  - The auth hook checks for #access_token= and #refresh_token= on page load
 
 - **redirect_uri_mismatch**: URI not added to Google Console  
   - Solution: Add all required URIs to Google Cloud Console
+  - Make sure to include your Replit domain without any callback path
 
-- **Popup blocked**: Browser blocks popup windows
-  - Solution: Allow popups for your Replit domain
+- **Session not persisting**: User gets logged out on page refresh
+  - Solution: App now saves session to localStorage with 24-hour expiration
+  - Session is restored automatically when user returns
+
+- **iframe blocking**: "accounts.google.com refused to connect"
+  - Solution: App uses redirect-based authentication instead of popup
+  - OAuth opens in same window and redirects back after authentication
 
 - **invalid_client**: Wrong Client ID or Secret
   - Solution: Verify credentials in Supabase settings

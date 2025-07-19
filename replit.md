@@ -9,13 +9,14 @@ This is a professional-grade, full-stack PDF utility web application built with 
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
-- **BREAKTHROUGH: Google OAuth Authentication Integration**: Complete OAuth login system with Supabase integration and iframe restriction fixes
-  - **Popup-Based Authentication**: Resolved iframe blocking by implementing popup-based OAuth instead of redirect
+- **BREAKTHROUGH: Google OAuth Authentication Integration**: Complete OAuth login system with Supabase integration and session handling
+  - **URL Token Processing**: Automatically processes #access_token and #refresh_token from OAuth redirect URL
+  - **Session Management**: Stores and restores Supabase sessions with 24-hour localStorage persistence
+  - **Automatic Redirects**: Users redirected to dashboard after successful OAuth authentication
   - **Google OAuth Buttons**: Professional OAuth buttons with Google branding on login and signup pages
-  - **Seamless Integration**: `signInWithOAuth('google')` with popup window handling and automatic dashboard redirect
-  - **iframe Compatibility**: Handles "accounts.google.com refused to connect" error by opening OAuth in popup
-  - **Enhanced Error Handling**: Specific error messages for popup blocking, iframe restrictions, and authentication failures
-  - **User-Friendly Flow**: Clear loading states and instructions for popup-based authentication
+  - **Enhanced Auth Flow**: `signInWithOAuth('google')` with redirect-based authentication and session restoration
+  - **OAuth Callback Handler**: Dedicated callback page with loading states and success/error feedback
+  - **Session Persistence**: Authentication state survives page refreshes and browser sessions
   - **Cross-Platform**: OAuth login available on landing page, login page, and signup page
 - **BREAKTHROUGH: Complete Authentication Flow & Session Management**: Full implementation of secure authentication with proper page redirection
   - **Landing Page Flow**: Home page ("/") → Sign In/Sign Up → Protected Dashboard ("/dashboard") 

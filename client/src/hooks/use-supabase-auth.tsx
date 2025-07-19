@@ -41,34 +41,110 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Get initial session
-    const getInitialSession = async () => {
+    const initializeAuth = async () => {
       try {
+        // Check if we have auth tokens in the URL (from OAuth redirect)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        if (accessToken) {
+          console.log('OAuth tokens found in URL, setting session...');
+          
+          // Set the session using the tokens from URL
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          });
+          
+          if (error) {
+            console.error('Error setting session from URL tokens:', error);
+          } else if (data.session?.user) {
+            console.log('Session set successfully from OAuth tokens');
+            const userData = {
+              id: data.session.user.id,
+              email: data.session.user.email || '',
+              created_at: data.session.user.created_at || ''
+            };
+            
+            setUser(userData);
+            
+            // Save session to localStorage
+            localStorage.setItem('supabase_session', JSON.stringify({
+              user: userData,
+              session: data.session,
+              timestamp: Date.now()
+            }));
+            
+            // Clean up URL by removing hash parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 100);
+            
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Get initial session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          setUser({
+          const userData = {
             id: session.user.id,
             email: session.user.email || '',
             created_at: session.user.created_at || ''
-          });
+          };
+          setUser(userData);
+          
+          // Save session to localStorage
+          localStorage.setItem('supabase_session', JSON.stringify({
+            user: userData,
+            session: session,
+            timestamp: Date.now()
+          }));
+        } else {
+          // Check localStorage for session
+          const storedSession = localStorage.getItem('supabase_session');
+          if (storedSession) {
+            try {
+              const parsedSession = JSON.parse(storedSession);
+              const isExpired = Date.now() - parsedSession.timestamp > 24 * 60 * 60 * 1000; // 24 hours
+              
+              if (!isExpired && parsedSession.user) {
+                console.log('Using stored session');
+                setUser(parsedSession.user);
+              } else {
+                localStorage.removeItem('supabase_session');
+              }
+            } catch (e) {
+              localStorage.removeItem('supabase_session');
+            }
+          }
         }
       } catch (error) {
-        console.error('Error getting initial session:', error);
+        console.error('Error initializing auth:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    getInitialSession();
+    initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
         const userData = {
           id: session.user.id,
           email: session.user.email || '',
           created_at: session.user.created_at || ''
         };
+        
+        setUser(userData);
         
         // Save session to localStorage
         localStorage.setItem('supabase_session', JSON.stringify({
@@ -77,7 +153,26 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
           timestamp: Date.now()
         }));
         
+        // Redirect to dashboard on successful sign in
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 100);
+      } else if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('supabase_session');
+        setUser(null);
+      } else if (session?.user) {
+        const userData = {
+          id: session.user.id,
+          email: session.user.email || '',
+          created_at: session.user.created_at || ''
+        };
+        
         setUser(userData);
+        localStorage.setItem('supabase_session', JSON.stringify({
+          user: userData,
+          session: session,
+          timestamp: Date.now()
+        }));
       } else {
         localStorage.removeItem('supabase_session');
         setUser(null);
@@ -126,17 +221,15 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Use popup-based OAuth to avoid iframe restrictions
+      // Use redirect-based OAuth with proper callback URL
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          },
-          // Force popup instead of redirect to avoid iframe issues
-          skipBrowserRedirect: false
+          }
         }
       });
 
@@ -145,51 +238,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
 
-      // For popup-based auth, we need to handle the response differently
-      if (data?.url) {
-        // Open OAuth URL in a popup window
-        const popup = window.open(
-          data.url,
-          'oauth-popup',
-          'width=500,height=600,scrollbars=yes,resizable=yes'
-        );
-
-        // Listen for the popup to close or receive a message
-        return new Promise((resolve, reject) => {
-          const checkClosed = setInterval(() => {
-            if (popup?.closed) {
-              clearInterval(checkClosed);
-              // Check if authentication was successful
-              supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
-                if (sessionError) {
-                  reject(sessionError);
-                } else if (sessionData.session) {
-                  // Update local state
-                  setUser(sessionData.session.user);
-                  // Save to localStorage
-                  localStorage.setItem('supabase_session', JSON.stringify({
-                    user: sessionData.session.user,
-                    session: sessionData.session,
-                    timestamp: Date.now()
-                  }));
-                  resolve(sessionData.session);
-                } else {
-                  reject(new Error('Authentication was cancelled or failed'));
-                }
-              });
-            }
-          }, 1000);
-
-          // Timeout after 5 minutes
-          setTimeout(() => {
-            clearInterval(checkClosed);
-            if (popup && !popup.closed) {
-              popup.close();
-            }
-            reject(new Error('Authentication timeout'));
-          }, 300000);
-        });
-      }
+      // Supabase will handle the redirect automatically
+      console.log('OAuth initiated, waiting for redirect...');
     } catch (error) {
       console.error('OAuth sign in failed:', error);
       throw error;
