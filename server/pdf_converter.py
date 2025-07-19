@@ -16,66 +16,129 @@ import tempfile
 import traceback
 
 def extract_text_with_pdfplumber(pdf_path):
-    """Extract text using pdfplumber with table and structure detection"""
+    """Extract text with focus on resume-like structure"""
     try:
         structured_content = []
         
         with pdfplumber.open(pdf_path) as pdf:
             for page_num, page in enumerate(pdf.pages):
-                # First try to extract tables
-                tables = page.extract_tables()
-                if tables:
-                    for table in tables:
-                        table_info = process_table_data(table)
-                        if table_info:
-                            structured_content.append(table_info)
-                
-                # Extract character-level information for remaining text
-                chars = page.chars
-                if not chars:
+                # Get simple text with layout
+                text = page.extract_text(layout=True, x_tolerance=3, y_tolerance=3)
+                if not text:
                     continue
                 
-                # Group characters into lines and detect formatting
-                lines_data = extract_formatted_lines(chars)
+                # Split into lines and process more simply
+                lines = text.split('\n')
                 
-                current_paragraph = []
-                
-                for line_data in lines_data:
-                    if not line_data['text'].strip():
-                        # Empty line - paragraph break
-                        if current_paragraph:
-                            para_text = ' '.join([l['text'] for l in current_paragraph])
-                            if len(para_text.strip()) > 8:
-                                # Check if this looks like a list item or structured text
-                                para_info = analyze_paragraph_with_structure(current_paragraph, para_text)
-                                structured_content.append(para_info)
-                            current_paragraph = []
+                for i, line in enumerate(lines):
+                    line = line.strip()
+                    if not line or len(line) < 5:
                         continue
                     
-                    # Check if this line should start a new paragraph
-                    should_break = should_start_new_paragraph_enhanced(line_data, current_paragraph)
+                    # Classify this line based on content patterns
+                    line_type = classify_resume_line(line, i == 0)
                     
-                    if should_break and current_paragraph:
-                        para_text = ' '.join([l['text'] for l in current_paragraph])
-                        if len(para_text.strip()) > 8:
-                            para_info = analyze_paragraph_with_structure(current_paragraph, para_text)
-                            structured_content.append(para_info)
-                        current_paragraph = [line_data]
-                    else:
-                        current_paragraph.append(line_data)
-                
-                # Add remaining content
-                if current_paragraph:
-                    para_text = ' '.join([l['text'] for l in current_paragraph])
-                    if len(para_text.strip()) > 8:
-                        para_info = analyze_paragraph_with_structure(current_paragraph, para_text)
-                        structured_content.append(para_info)
+                    structured_content.append({
+                        'text': line,
+                        'type': line_type['type'],
+                        'level': line_type.get('level'),
+                        'formatting': line_type.get('formatting', {})
+                    })
         
-        return structured_content
+        return merge_related_content(structured_content)
     
     except Exception as e:
         print(f"pdfplumber extraction failed: {e}", file=sys.stderr)
         return None
+
+def classify_resume_line(line, is_first_line=False):
+    """Classify a line as name, section header, job title, company info, or regular text"""
+    
+    # Name (usually first substantial line, short, proper nouns)
+    if (is_first_line or 
+        (len(line.split()) <= 3 and 
+         line.replace(' ', '').replace('.', '').isalpha() and
+         line.istitle() and
+         not any(word.lower() in ['experience', 'education', 'skills', 'summary'] for word in line.split()))):
+        return {'type': 'name'}
+    
+    # Contact info (emails, urls, phone numbers)
+    if (any(indicator in line.lower() for indicator in ['@', 'http', 'linkedin', 'behance']) or
+        any(char.isdigit() for char in line) and len(line.split()) <= 8):
+        return {'type': 'contact'}
+    
+    # Major section headers
+    major_sections = ['work experience', 'experience', 'education', 'skills', 'projects', 'summary', 'objective']
+    if any(section in line.lower() for section in major_sections):
+        return {'type': 'section_header'}
+    
+    # Job titles (Designer, Developer, etc. but clean - no company mixed in)
+    if (any(title in line.lower() for title in ['designer', 'developer', 'engineer', 'manager', 'analyst']) and
+        len(line.split()) <= 4 and
+        not any(word.lower() in ['solutions', 'technologies', 'systems', 'inc', 'ltd'] for word in line.split()) and
+        not any(char.isdigit() for char in line)):
+        return {'type': 'job_title'}
+    
+    # Company/date lines (contain years and company indicators)
+    if (any(str(year) in line for year in range(2015, 2025)) and
+        any(indicator in line.lower() for indicator in ['solutions', 'technologies', 'present', 'remote', 'bangladesh', 'lahore'])):
+        return {'type': 'company_date'}
+    
+    # List items
+    if line.lstrip().startswith(('•', '-', '*', '▪', '◦')):
+        return {'type': 'list_item'}
+    
+    # Everything else is regular paragraph text
+    return {'type': 'paragraph'}
+
+def merge_related_content(content_list):
+    """Merge related content that should be combined"""
+    merged = []
+    
+    i = 0
+    while i < len(content_list):
+        current = content_list[i]
+        
+        # Merge consecutive contact info lines
+        if current['type'] == 'contact':
+            contact_lines = [current['text']]
+            j = i + 1
+            while j < len(content_list) and content_list[j]['type'] == 'contact':
+                contact_lines.append(content_list[j]['text'])
+                j += 1
+            
+            merged.append({
+                'text': ' '.join(contact_lines),
+                'type': 'contact',
+                'formatting': {}
+            })
+            i = j
+            continue
+        
+        # Merge consecutive paragraph lines that aren't job descriptions
+        if current['type'] == 'paragraph':
+            para_lines = [current['text']]
+            j = i + 1
+            # Only merge if next lines are also paragraphs and not too long combined
+            while (j < len(content_list) and 
+                   content_list[j]['type'] == 'paragraph' and
+                   len(' '.join(para_lines + [content_list[j]['text']])) < 500):
+                para_lines.append(content_list[j]['text'])
+                j += 1
+            
+            merged.append({
+                'text': ' '.join(para_lines),
+                'type': 'paragraph',
+                'formatting': {}
+            })
+            i = j
+            continue
+        
+        # Keep other types as-is
+        merged.append(current)
+        i += 1
+    
+    return merged
 
 def process_table_data(table):
     """Process extracted table data into structured format"""
@@ -430,57 +493,139 @@ def extract_text_with_pymupdf(pdf_path):
         return None
 
 def create_word_document(structured_content, output_path):
-    """Create professionally formatted Word document with tables and structured content"""
+    """Create Word document matching iLovePDF's exact structure"""
     try:
         doc = Document()
         
-        # Set document margins for better content display
+        # Set margins for professional resume
         section = doc.sections[0]
         section.page_height = Inches(11)
         section.page_width = Inches(8.5)
-        section.left_margin = Inches(0.7)
-        section.right_margin = Inches(0.7)
-        section.top_margin = Inches(0.7)
-        section.bottom_margin = Inches(0.7)
+        section.left_margin = Inches(0.8)
+        section.right_margin = Inches(0.8)
+        section.top_margin = Inches(0.8)
+        section.bottom_margin = Inches(0.8)
         
-        # Configure styles
+        # Configure document styles
         configure_document_styles(doc)
         
-        # Add content with advanced formatting and structure
+        # Process content with proper iLovePDF-style formatting
         for item in structured_content:
-            if item['type'] == 'table':
-                create_word_table(doc, item['data'])
-            elif item['type'] == 'heading':
-                if item['text'].strip():
-                    create_formatted_heading(doc, item['text'].strip(), item.get('level', 2), item.get('formatting', {}))
-            elif item['type'] == 'numbered_item':
-                create_numbered_item(doc, item['text'].strip(), item.get('formatting', {}))
-            elif item['type'] == 'list_item':
-                create_list_item(doc, item['text'].strip(), item.get('formatting', {}))
-            else:  # regular paragraph
-                if item['text'].strip() and len(item['text'].strip()) > 3:
-                    create_formatted_paragraph(doc, item['text'].strip(), item.get('formatting', {}))
+            text = item['text'].strip()
+            if not text or len(text) < 3:
+                continue
+            
+            content_type = item['type']
+            
+            if content_type == 'name':
+                create_resume_name(doc, text)
+            elif content_type == 'contact':
+                create_resume_contact(doc, text)
+            elif content_type == 'section_header':
+                create_resume_section(doc, text)
+            elif content_type == 'job_title':
+                create_resume_job_title(doc, text)
+            elif content_type == 'company_date':
+                create_resume_company_date(doc, text)
+            elif content_type == 'list_item':
+                create_resume_bullet(doc, text)
+            elif content_type == 'table':
+                if 'data' in item:
+                    create_word_table(doc, item['data'])
+            else:  # paragraph
+                create_resume_paragraph(doc, text)
         
-        # Ensure we have content
-        if len(doc.paragraphs) == 0 and len(doc.tables) == 0:
-            doc.add_paragraph("No text content could be extracted from the PDF.")
+        # Ensure document has content
+        if len(doc.paragraphs) == 0:
+            doc.add_paragraph("No content could be extracted from the PDF.")
         
-        # Save the document
         doc.save(output_path)
         
-        # Count elements
-        heading_count = len([item for item in structured_content if item['type'] == 'heading'])
-        para_count = len([item for item in structured_content if item['type'] == 'paragraph'])
-        list_count = len([item for item in structured_content if item['type'] in ['numbered_item', 'list_item']])
-        table_count = len([item for item in structured_content if item['type'] == 'table'])
+        # Log structure
+        types_count = {}
+        for item in structured_content:
+            t = item['type']
+            types_count[t] = types_count.get(t, 0) + 1
         
-        print(f"Word document created with {len(doc.paragraphs)} paragraphs, {table_count} tables, {heading_count} headings, {list_count} list items", file=sys.stderr)
+        print(f"Created resume with: {types_count}", file=sys.stderr)
         return True
         
     except Exception as e:
         print(f"Word document creation failed: {e}", file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
         return False
+
+def create_resume_name(doc, text):
+    """Create name heading - large, centered, bold"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(18)
+    run.bold = True
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.space_after = Pt(6)
+
+def create_resume_contact(doc, text):
+    """Create contact info - small, centered"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(10)
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.space_after = Pt(12)
+
+def create_resume_section(doc, text):
+    """Create section header - left-aligned, bold"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(14)
+    run.bold = True
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    para.paragraph_format.space_before = Pt(18)
+    para.paragraph_format.space_after = Pt(6)
+
+def create_resume_job_title(doc, text):
+    """Create job title - bold, left-aligned"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(12)
+    run.bold = True
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    para.paragraph_format.space_before = Pt(8)
+    para.paragraph_format.space_after = Pt(2)
+
+def create_resume_company_date(doc, text):
+    """Create company/date info - italic, right-aligned"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(10)
+    run.italic = True
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    para.paragraph_format.space_after = Pt(4)
+
+def create_resume_paragraph(doc, text):
+    """Create regular paragraph text"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(11)
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    para.paragraph_format.space_after = Pt(6)
+    para.paragraph_format.line_spacing = 1.15
+
+def create_resume_bullet(doc, text):
+    """Create bullet point"""
+    clean_text = text.lstrip('•▪▫◦‣⁃-* ').strip()
+    para = doc.add_paragraph(clean_text, style='List Bullet')
+    para.paragraph_format.left_indent = Inches(0.25)
+    para.paragraph_format.space_after = Pt(3)
+    
+    for run in para.runs:
+        run.font.name = 'Calibri'
+        run.font.size = Pt(11)
 
 def create_word_table(doc, table_data):
     """Create a properly formatted table in Word"""
