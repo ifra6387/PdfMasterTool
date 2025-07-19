@@ -847,6 +847,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+// Rotate PDF route
+app.post('/api/convert/rotate-pdf', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Validate file type
+    if (!req.file.originalname.toLowerCase().endsWith('.pdf')) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Parse rotation parameters
+    const rotationAngle = parseInt(req.body.rotationAngle);
+    if (!rotationAngle || ![90, 180, 270].includes(rotationAngle)) {
+      return res.status(400).json({ message: "Please select a valid rotation angle (90°, 180°, or 270°)." });
+    }
+
+    const pageNumbers = req.body.pageNumbers?.trim() || '';
+
+    // Setup output paths
+    const outputDir = path.join(process.cwd(), 'outputs');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const originalName = path.parse(req.file.originalname).name;
+    const outputFilename = `${originalName}_rotated_${rotationAngle}deg_${Date.now()}.pdf`;
+    const outputPath = path.join(outputDir, outputFilename);
+
+    const pythonScript = path.join(process.cwd(), "server", "rotate_pdf_converter.py");
+    const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+    
+    // Create a temporary file with proper extension for Python script validation
+    const tempInputPath = path.join(path.dirname(req.file.path), req.file.originalname);
+    fs.copyFileSync(req.file.path, tempInputPath);
+    
+    console.log(`Rotating PDF: ${req.file.originalname} by ${rotationAngle}° (pages: ${pageNumbers || 'all'})`);
+    
+    const result = await new Promise<string>((resolve, reject) => {
+      const args = [pythonScript, tempInputPath, outputPath, rotationAngle.toString()];
+      if (pageNumbers) {
+        args.push(pageNumbers);
+      }
+      
+      const python = spawn(pythonPath, args, {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      python.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(stdout.trim());
+            if (result.success) {
+              resolve(result.message);
+            } else {
+              reject(new Error(result.error || "Unknown error"));
+            }
+          } catch (e) {
+            resolve("PDF rotated successfully");
+          }
+        } else {
+          reject(new Error(`PDF rotation failed (exit code ${code}): ${stderr || stdout || "Unknown error"}`));
+        }
+      });
+
+      python.on('error', (error) => {
+        reject(new Error(`Failed to start Python process: ${error.message}`));
+      });
+    });
+
+    // Check if output file was created
+    if (!fs.existsSync(outputPath)) {
+      throw new Error("Output file was not created");
+    }
+
+    // Send the rotated PDF file
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+    
+    const fileStream = fs.createReadStream(outputPath);
+    fileStream.pipe(res);
+
+    // Clean up files after 30 seconds
+    setTimeout(() => {
+      try {
+        fs.unlinkSync(req.file!.path);
+        fs.unlinkSync(tempInputPath);
+        fs.unlinkSync(outputPath);
+      } catch (err) {
+        console.error('Cleanup error:', err);
+      }
+    }, 30000);
+
+  } catch (error: any) {
+    console.error('PDF rotation error:', error);
+    res.status(500).json({ message: "Failed to rotate PDF. Please try again." });
+  }
+});
+
   // Download routes
   app.get("/api/download/:token", async (req, res) => {
     try {

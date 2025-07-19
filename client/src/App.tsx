@@ -33,6 +33,7 @@ import PowerPointToPDF from "@/pages/tools/powerpoint-to-pdf";
 import PDFToPowerPoint from "@/pages/tools/pdf-to-powerpoint";
 import PDFToHTML from "@/pages/tools/pdf-to-html";
 import HTMLToPDF from "@/pages/tools/html-to-pdf";
+import RotatePDF from "@/pages/tools/rotate-pdf";
 
 
 function Router() {
@@ -79,6 +80,7 @@ function Router() {
       <Route path="/tool/pdf-to-powerpoint" component={PDFToPowerPoint} />
       <Route path="/tool/pdf-to-html" component={PDFToHTML} />
       <Route path="/tool/html-to-pdf" component={HTMLToPDF} />
+      <Route path="/tool/rotate" component={RotatePDF} />
 
       
       {/* Alternative routes with /tools/ prefix */}
