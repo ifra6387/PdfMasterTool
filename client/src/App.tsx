@@ -36,6 +36,7 @@ import HTMLToPDF from "@/pages/tools/html-to-pdf";
 import RotatePDF from "@/pages/tools/rotate-pdf";
 import WatermarkPDF from "@/pages/tools/watermark-pdf";
 import EditPDF from "@/pages/tools/edit-pdf";
+import SignPDF from "@/pages/tools/sign-pdf";
 
 
 function Router() {
@@ -85,6 +86,7 @@ function Router() {
       <Route path="/tool/rotate" component={RotatePDF} />
       <Route path="/tool/watermark" component={WatermarkPDF} />
       <Route path="/tool/edit" component={EditPDF} />
+      <Route path="/tool/sign" component={SignPDF} />
 
       
       {/* Alternative routes with /tools/ prefix */}
