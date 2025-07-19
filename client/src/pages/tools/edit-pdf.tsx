@@ -41,9 +41,11 @@ const loadPdfJsScript = () => {
       // Wait a moment for initialization
       setTimeout(() => {
         if (window.pdfjsLib && typeof window.pdfjsLib.getDocument === 'function') {
-          // Set worker
-          window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-          console.log('PDF.js initialized successfully with worker');
+          // Set worker - disable for debugging
+          console.log('PDF.js library available, disabling worker for compatibility...');
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = null;
+          window.pdfjsLib.disableWorker = true;
+          console.log('PDF.js initialized successfully without worker');
           resolve(window.pdfjsLib);
         } else {
           console.error('PDF.js object not found after script load');
@@ -219,6 +221,9 @@ export default function EditPdf() {
   const loadPdfPages = async (file: File) => {
     console.log('Starting PDF load for:', file.name, file.size, 'bytes');
     
+    let arrayBuffer: ArrayBuffer | null = null;
+    let typedarray: Uint8Array | null = null;
+    
     try {
       // Wait for PDF.js to be available
       let retryCount = 0;
@@ -241,7 +246,7 @@ export default function EditPdf() {
       console.log('PDF.js confirmed available');
       
       // Read file using FileReader
-      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+      arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function() {
           console.log('FileReader completed successfully');
@@ -254,7 +259,7 @@ export default function EditPdf() {
         reader.readAsArrayBuffer(file);
       });
       
-      const typedarray = new Uint8Array(arrayBuffer);
+      typedarray = new Uint8Array(arrayBuffer);
       console.log('File read as typed array, size:', typedarray.length);
       
       // Validate basic PDF structure  
@@ -408,8 +413,8 @@ export default function EditPdf() {
         console.error('Full error object:', JSON.stringify(error, null, 2));
       }
       
-      // Check if PDF structure is valid
-      const isValidPdf = validatePdfStructure(typedarray);
+      // Check if PDF structure is valid (ensure typedarray is available)
+      const isValidPdf = typedarray ? validatePdfStructure(typedarray) : false;
       console.log('PDF structure validation:', isValidPdf);
       
       // If PDF structure is valid but PDF.js failed, use fallback
