@@ -12,10 +12,12 @@ This guide addresses both issues with popup-based authentication.
 
 Add these URIs to your Google Cloud Console OAuth2 client credentials:
 
-#### For Supabase Auth (Primary)
+#### For Supabase OAuth (Primary) - REQUIRED
 ```
-https://[your-supabase-project-ref].supabase.co/auth/v1/callback
+https://valkgbmvpbcxlrunffpu.supabase.co/auth/v1/callback
 ```
+
+**This is the ONLY redirect URI you need for this project's Google OAuth to work.**
 
 #### For Replit Development (Secondary)
 ```

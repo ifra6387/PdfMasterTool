@@ -47,6 +47,14 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
+        const tokenType = hashParams.get('token_type');
+        const expiresIn = hashParams.get('expires_in');
+        
+        console.log('Checking URL for OAuth tokens...', {
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken,
+          currentHash: window.location.hash
+        });
         
         if (accessToken) {
           console.log('OAuth tokens found in URL, setting session...');
@@ -54,7 +62,9 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
           // Set the session using the tokens from URL
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
-            refresh_token: refreshToken || ''
+            refresh_token: refreshToken || '',
+            token_type: tokenType || 'bearer',
+            expires_in: expiresIn ? parseInt(expiresIn) : 3600
           });
           
           if (error) {
@@ -77,12 +87,10 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
             }));
             
             // Clean up URL by removing hash parameters
-            window.history.replaceState({}, document.title, window.location.pathname);
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
             
-            // Redirect to dashboard
-            setTimeout(() => {
-              window.location.href = '/dashboard';
-            }, 100);
+            // Redirect to dashboard immediately
+            window.location.href = '/dashboard';
             
             setLoading(false);
             return;
@@ -153,10 +161,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
           timestamp: Date.now()
         }));
         
-        // Redirect to dashboard on successful sign in
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 100);
+        // Redirect to dashboard on successful sign in immediately
+        window.location.href = '/dashboard';
       } else if (event === 'SIGNED_OUT') {
         localStorage.removeItem('supabase_session');
         setUser(null);
