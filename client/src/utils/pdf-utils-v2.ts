@@ -354,81 +354,126 @@ export async function pdfToWord(file: File): Promise<Blob> {
   }
 }
 
-// Helper function to create Word document using docx library
+// Helper function to create Word document using manual DOCX structure
 async function createWordDocument(text: string): Promise<Blob> {
   try {
-    const { Document, Packer, Paragraph, TextRun } = await import('docx');
-    
     console.log('Creating Word document from extracted text...');
     console.log('Text length:', text.length);
     
-    // Split text into paragraphs and clean up
-    const paragraphTexts = text
-      .split('\n\n')
-      .filter(p => p.trim())
-      .map(p => p.trim().replace(/\n/g, ' ').replace(/\s+/g, ' '));
-    
-    console.log(`Creating ${paragraphTexts.length} paragraphs`);
-    
-    // If no paragraphs, create one with the full text
-    if (paragraphTexts.length === 0 && text.trim()) {
-      paragraphTexts.push(text.trim().replace(/\s+/g, ' '));
-    }
-    
-    // Create document paragraphs
-    const docParagraphs = paragraphTexts.map(paragraphText => 
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: paragraphText,
-            size: 24, // 12pt font size (size is in half-points)
-            font: "Times New Roman",
-          }),
-        ],
-        spacing: {
-          after: 200, // 10pt space after paragraph
-        },
-      })
-    );
-    
-    // Ensure we have at least one paragraph
-    if (docParagraphs.length === 0) {
-      docParagraphs.push(
+    // First try using docx library
+    try {
+      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+      
+      // Split text into paragraphs and clean up
+      const paragraphTexts = text
+        .split('\n\n')
+        .filter(p => p.trim())
+        .map(p => p.trim().replace(/\n/g, ' ').replace(/\s+/g, ' '));
+      
+      console.log(`Creating ${paragraphTexts.length} paragraphs with docx library`);
+      
+      // If no paragraphs, create one with the full text
+      if (paragraphTexts.length === 0 && text.trim()) {
+        paragraphTexts.push(text.trim().replace(/\s+/g, ' '));
+      }
+      
+      // Create simple paragraphs without complex formatting
+      const docParagraphs = paragraphTexts.map(paragraphText => 
         new Paragraph({
           children: [
-            new TextRun({
-              text: "Converted from PDF",
-              size: 24,
-              font: "Times New Roman",
-            }),
+            new TextRun(paragraphText),
           ],
         })
       );
+      
+      // Ensure we have at least one paragraph
+      if (docParagraphs.length === 0) {
+        docParagraphs.push(new Paragraph({ children: [new TextRun("Converted from PDF")] }));
+      }
+      
+      // Create simple document
+      const doc = new Document({
+        sections: [{
+          children: docParagraphs,
+        }],
+      });
+      
+      console.log('Generating Word document buffer...');
+      const buffer = await Packer.toBuffer(doc);
+      console.log('Word document created with docx library, size:', buffer.length, 'bytes');
+      
+      return new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      });
+      
+    } catch (docxError) {
+      console.warn('docx library failed, falling back to manual creation:', docxError);
+      
+      // Fallback: Create DOCX manually using JSZip
+      const JSZip = (await import('jszip')).default;
+      return await createManualDocx(text, JSZip);
     }
-    
-    // Create the document
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: docParagraphs,
-      }],
-    });
-    
-    console.log('Generating Word document buffer...');
-    
-    // Generate the buffer
-    const buffer = await Packer.toBuffer(doc);
-    console.log('Word document created successfully, size:', buffer.length, 'bytes');
-    
-    return new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    });
     
   } catch (error) {
     console.error('Error creating Word document:', error);
-    console.error('Error details:', error);
     throw new Error('Failed to create Word document: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
+}
+
+// Manual DOCX creation as fallback
+async function createManualDocx(text: string, JSZip: any): Promise<Blob> {
+  console.log('Creating DOCX manually using JSZip');
+  
+  const zip = new JSZip();
+  
+  // Create basic DOCX structure
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
+
+  const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+
+  // Convert text to Word XML format
+  const paragraphs = text
+    .split('\n\n')
+    .filter(p => p.trim())
+    .map(paragraph => {
+      const escapedText = paragraph
+        .trim()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+      
+      return `<w:p><w:r><w:t>${escapedText}</w:t></w:r></w:p>`;
+    })
+    .join('');
+
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    ${paragraphs || '<w:p><w:r><w:t>Converted from PDF</w:t></w:r></w:p>'}
+  </w:body>
+</w:document>`;
+
+  // Add files to zip
+  zip.file('[Content_Types].xml', contentTypes);
+  zip.file('_rels/.rels', rels);
+  zip.file('word/document.xml', documentXml);
+
+  const arrayBuffer = await zip.generateAsync({ type: 'arraybuffer' });
+  console.log('Manual DOCX created, size:', arrayBuffer.byteLength, 'bytes');
+  
+  return new Blob([arrayBuffer], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
 }
 
 // Word to PDF utility - Enhanced version
