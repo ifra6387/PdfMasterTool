@@ -42,24 +42,22 @@ import SignPDF from "@/pages/tools/sign-pdf";
 function Router() {
   return (
     <Switch>
-      {/* Tools page as default landing route */}
-      <Route path="/" component={Tools} />
+      {/* Landing page as default route */}
+      <Route path="/" component={Home} />
       
-      {/* Old home page moved to /home for backwards compatibility */}
-      <Route path="/home" component={Home} />
-      
-      {/* Tools also accessible at /tools */}
-      <Route path="/tools" component={Tools} />
-
-      <Route path="/processing/:fileId" component={Processing} />
-      <Route path="/download/:token" component={Download} />
-      
+      {/* Authentication routes */}
       <Route path="/signin" component={LoginStandalone} />
       <Route path="/login" component={LoginStandalone} />
       <Route path="/signup" component={SignUpStandalone} />
       
-      {/* Dashboard route - redirect to tools */}
-      <Route path="/dashboard" component={Tools} />
+      {/* Protected dashboard route */}
+      <Route path="/dashboard" component={() => <AuthGuard><Tools /></AuthGuard>} />
+      
+      {/* Tools also accessible at /tools (protected) */}
+      <Route path="/tools" component={() => <AuthGuard><Tools /></AuthGuard>} />
+
+      <Route path="/processing/:fileId" component={Processing} />
+      <Route path="/download/:token" component={Download} />
       
       {/* Actual tool routes */}
       <Route path="/tool/merge" component={MergePDF} />

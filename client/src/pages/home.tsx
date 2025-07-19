@@ -39,9 +39,9 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { theme, toggleTheme } = useTheme();
 
-  // Redirect to tools if already authenticated
+  // Redirect to dashboard if already authenticated
   if (user && !loading) {
-    setTimeout(() => setLocation('/tools'), 0);
+    setTimeout(() => setLocation('/dashboard'), 0);
     return null;
   }
 
@@ -97,7 +97,7 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button
-              onClick={() => setLocation('/signin')}
+              onClick={() => setLocation('/signup')}
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-heading shadow-lg hover:shadow-xl dark:shadow-slate-900/40 transition-all duration-300 hover:scale-105"
             >

@@ -217,8 +217,29 @@ export default function Tools() {
   const { theme, toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
-    await logout();
-    setLocation('/');
+    try {
+      // Call Supabase logout
+      await logout();
+      
+      // Call backend logout endpoint
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (backendError) {
+        console.warn('Backend logout failed:', backendError);
+      }
+      
+      // Redirect to landing page after successful logout
+      setLocation('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even if logout fails
+      setLocation('/');
+    }
   };
 
   const handleToolClick = (toolId: string) => {

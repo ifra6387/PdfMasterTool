@@ -133,8 +133,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced logout endpoint with session cleanup
   app.post("/api/auth/logout", (req, res) => {
-    res.json({ message: "Logged out successfully" });
+    try {
+      // Clear any server-side session if using sessions
+      if (req.session) {
+        req.session.destroy((err) => {
+          if (err) {
+            console.error('Session destroy error:', err);
+          }
+        });
+      }
+      
+      // Clear any authentication cookies
+      res.clearCookie('connect.sid'); // Default express-session cookie
+      res.clearCookie('auth_token');
+      res.clearCookie('session_token');
+      
+      res.json({ 
+        message: "Logged out successfully",
+        success: true 
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({ 
+        message: "Logout failed",
+        success: false 
+      });
+    }
   });
 
   // File upload routes
