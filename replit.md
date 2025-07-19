@@ -72,10 +72,10 @@ Modular PDF processing service supporting:
 
 ### Supabase Authentication Flow
 1. **Session Check**: AuthGuard checks Supabase session on page load → Shows loading state
-2. **Registration**: User signs up → Supabase creates user → Auto-redirect to dashboard
-3. **Login**: User logs in → Session established → Auto-redirect to dashboard
-4. **Protected Access**: User accesses /dashboard → AuthGuard verifies session → Allow/deny access
-5. **Logout**: User logs out → Session cleared → Redirect to auth page
+2. **Registration**: User signs up → Supabase creates user → Auto-redirect to tools page
+3. **Login**: User logs in → Session established → Auto-redirect to tools page
+4. **Protected Access**: User accesses /tools → AuthGuard verifies session → Allow/deny access
+5. **Logout**: User logs out via `logout()` function → Session cleared → Redirect to landing page
 
 ## External Dependencies
 

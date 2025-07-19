@@ -98,12 +98,12 @@ const pdfTools = [
 ];
 
 export default function Tools() {
-  const { user, signOut } = useSupabaseAuth();
+  const { user, logout } = useSupabaseAuth();
   const [, setLocation] = useLocation();
   const { theme, toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
-    await signOut();
+    await logout();
     setLocation('/');
   };
 
