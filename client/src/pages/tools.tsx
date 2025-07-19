@@ -23,12 +23,6 @@ export default function Tools() {
   const { user, signOut } = useSupabaseAuth();
   const [, setLocation] = useLocation();
 
-  // Redirect if not authenticated
-  if (!user) {
-    setLocation('/');
-    return null;
-  }
-
   const handleSignOut = async () => {
     try {
       await signOut();

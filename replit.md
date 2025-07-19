@@ -9,6 +9,14 @@ This is a professional-grade, full-stack PDF utility web application built with 
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
+- **BREAKTHROUGH: Seamless In-App Google OAuth Authentication**: Fixed Google Sign-In to work within custom login pages instead of redirecting away
+  - **Custom Login/Signup Pages**: Professional `/login` and `/signup` pages with branded design matching "I Love Making PDF" theme
+  - **In-App Google OAuth**: Google Sign-In buttons work within custom pages, no external redirects or page breaks
+  - **Proper Flow Control**: Landing Page → Custom Login Page → Dashboard → Landing Page (on logout)
+  - **AuthGuard Protection**: Protected routes with loading states and automatic redirect handling
+  - **Dual Authentication Options**: Both email/password and Google OAuth available on same login page
+  - **Professional UI**: Custom forms with icons, validation, password visibility toggle, and error handling
+  - **Seamless Transitions**: Users stay within branded website experience throughout entire authentication flow
 - **BREAKTHROUGH: Google OAuth Authentication Integration**: Complete OAuth login system with Supabase integration and session handling
   - **URL Token Processing**: Automatically processes #access_token and #refresh_token from OAuth redirect URL
   - **Session Management**: Stores and restores Supabase sessions with 24-hour localStorage persistence

@@ -8,15 +8,11 @@ export default function Home() {
   const { user, signInWithGoogle } = useSupabaseAuth();
   const [, setLocation] = useLocation();
 
-  const handleGetStarted = async () => {
+  const handleGetStarted = () => {
     if (user) {
       setLocation('/dashboard');
     } else {
-      try {
-        await signInWithGoogle();
-      } catch (error) {
-        console.error('Error signing in:', error);
-      }
+      setLocation('/login');
     }
   };
 
@@ -29,9 +25,16 @@ export default function Home() {
             <FileText className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-heading font-bold">I Love Making PDF</span>
           </div>
-          <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
-            {user ? 'Go to Dashboard' : 'Get Started'}
-          </Button>
+          <div className="flex gap-3">
+            <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
+              {user ? 'Go to Dashboard' : 'Get Started'}
+            </Button>
+            {!user && (
+              <Button variant="outline" onClick={() => setLocation('/login')}>
+                Sign In
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
