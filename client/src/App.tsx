@@ -8,7 +8,7 @@ import { AuthProvider } from "./hooks/use-auth";
 import { SupabaseAuthProvider } from "./hooks/use-supabase-auth";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
-
+import Tools from "@/pages/tools";
 import Tool from "@/pages/tool";
 import Processing from "@/pages/processing";
 import Download from "@/pages/download";
@@ -21,6 +21,11 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
 
+      <Route path="/tools" component={() => (
+        <AuthGuard requireAuth={true}>
+          <Tools />
+        </AuthGuard>
+      )} />
       <Route path="/tool/:toolName" component={() => (
         <AuthGuard requireAuth={true}>
           <Tool />

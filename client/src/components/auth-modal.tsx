@@ -64,7 +64,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         setConfirmPassword('');
         setTimeout(() => {
           onOpenChange(false);
-          setLocation('/dashboard');
+          setLocation('/tools');
         }, 1500);
       }
     } catch (error) {
@@ -96,7 +96,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         setPassword('');
         setTimeout(() => {
           onOpenChange(false);
-          setLocation('/dashboard');
+          setLocation('/tools');
         }, 1500);
       }
     } catch (error) {

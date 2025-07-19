@@ -1,93 +1,99 @@
-import { Navigation } from "@/components/navigation";
-import { ToolGrid } from "@/components/tool-grid";
-import { Shield, CloudUpload, Lock } from "lucide-react";
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { AuthModal } from "@/components/auth-modal";
+import { useSupabaseAuth } from "@/hooks/use-supabase-auth";
+import { useLocation } from 'wouter';
+import { FileText, Shield, Zap, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/components/theme-provider";
 
 export default function Home() {
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const { user, loading } = useSupabaseAuth();
+  const [, setLocation] = useLocation();
+  const { theme, toggleTheme } = useTheme();
+
+  // Redirect to tools if already authenticated
+  if (user) {
+    setLocation('/tools');
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navigation />
-      
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-red-50 to-red-100 dark:from-gray-800 dark:to-gray-900 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            Every tool you need to work with PDFs in one place
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
+      {/* Theme Toggle */}
+      <div className="absolute top-6 right-6 z-10">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleTheme}
+          className="rounded-full p-3 bg-white/20 hover:bg-white/30 dark:bg-slate-800/40 dark:hover:bg-slate-700/50 backdrop-blur-sm"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-5 w-5 text-yellow-500" />
+          ) : (
+            <Moon className="h-5 w-5 text-slate-600" />
+          )}
+        </Button>
+      </div>
+
+      {/* Main Content */}
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Logo */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <FileText className="h-8 w-8 text-white" />
+            </div>
+          </div>
+
+          {/* Main Heading */}
+          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-6">
+            All-in-One PDF Toolkit
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            Merge, split, compress, convert, and edit PDF files for free. 100% secure with automatic file deletion after 1 hour.
+
+          {/* Tagline */}
+          <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Merge, compress, convert PDF files — secure, fast, and free.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <div className="flex items-center text-gray-600 dark:text-gray-300">
-              <Shield className="text-green-500 mr-2 h-5 w-5" />
-              <span>Files auto-delete after 1 hour</span>
-            </div>
-            <div className="flex items-center text-gray-600 dark:text-gray-300">
-              <CloudUpload className="text-blue-500 mr-2 h-5 w-5" />
-              <span>Max upload: 20MB</span>
-            </div>
-            <div className="flex items-center text-gray-600 dark:text-gray-300">
-              <Lock className="text-red-500 mr-2 h-5 w-5" />
-              <span>100% Secure & Private</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Tools Grid */}
-      <ToolGrid />
+          {/* Features */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-2xl mx-auto">
+            <div className="flex flex-col items-center p-6 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/50">
+              <Shield className="h-10 w-10 text-green-500 mb-3" />
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Secure</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Files auto-delete after processing</p>
+            </div>
+            <div className="flex flex-col items-center p-6 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/50">
+              <Zap className="h-10 w-10 text-yellow-500 mb-3" />
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Fast</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Lightning-quick processing</p>
+            </div>
+            <div className="flex flex-col items-center p-6 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/50">
+              <FileText className="h-10 w-10 text-blue-500 mb-3" />
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Complete</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">All PDF tools in one place</p>
+            </div>
+          </div>
 
-      {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                  <i className="fas fa-file-pdf text-white text-lg"></i>
-                </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  I Love Making PDF
-                </span>
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                The complete PDF toolkit for all your document needs. Secure, fast, and completely free.
-              </p>
-              <div className="flex space-x-4">
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <Shield className="text-green-500 mr-2 h-4 w-4" />
-                  Files auto-delete after 1 hour
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Tools</h3>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-red-500 transition-colors">Merge PDF</a></li>
-                <li><a href="#" className="hover:text-red-500 transition-colors">Split PDF</a></li>
-                <li><a href="#" className="hover:text-red-500 transition-colors">Compress PDF</a></li>
-                <li><a href="#" className="hover:text-red-500 transition-colors">Convert PDF</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-red-500 transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-red-500 transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-red-500 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-red-500 transition-colors">Terms of Service</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-200 dark:border-gray-700 mt-8 pt-8 text-center">
-            <p className="text-gray-500 dark:text-gray-400">
-              © 2024 I Love Making PDF. All rights reserved. Built with ❤️ using open-source tools.
-            </p>
-          </div>
+          {/* Sign In Button */}
+          <Button
+            onClick={() => setAuthModalOpen(true)}
+            disabled={loading}
+            size="lg"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-12 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+          >
+            {loading ? 'Loading...' : 'Sign In to Get Started'}
+          </Button>
+
+          {/* Additional Info */}
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-6">
+            No credit card required • Start using immediately
+          </p>
         </div>
-      </footer>
+      </div>
+
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   );
 }
