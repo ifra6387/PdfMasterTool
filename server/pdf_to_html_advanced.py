@@ -87,15 +87,23 @@ def process_page_advanced(page, page_num):
         # Extract text blocks with positioning
         text_blocks = page.get_text("dict")
         
-        # Check if page has readable text
-        has_text = any(block.get("lines", []) for block in text_blocks.get("blocks", []))
+        # Try simple text extraction first
+        simple_text = page.get_text()
         
-        if has_text:
-            # Process text-based content
-            page_html += process_text_blocks(text_blocks, page_width, page_height)
+        if simple_text and simple_text.strip():
+            # Process text with resume structure detection
+            page_html += process_simple_text_with_structure(simple_text, page_num == 0)
         else:
-            # Handle scanned/image-based PDF with OCR
-            page_html += process_scanned_page_ocr(page, page_num)
+            # Check if page has readable text blocks
+            has_text = any(block.get("lines", []) for block in text_blocks.get("blocks", []))
+            
+            if has_text:
+                # Process text-based content with positioning
+                page_html += process_text_blocks(text_blocks, page_width, page_height)
+            else:
+                # Handle scanned/image-based PDF with OCR
+                print(f"No readable text found on page {page_num + 1}, attempting OCR...", file=sys.stderr)
+                page_html += process_scanned_page_ocr(page, page_num)
         
         # Extract and embed images
         page_html += extract_page_images(page, page_num)
@@ -107,11 +115,64 @@ def process_page_advanced(page, page_num):
         print(f"Page processing failed: {e}", file=sys.stderr)
         return f'<div class="pdf-page"><p>Error processing page {page_num + 1}</p></div>\n'
 
+def process_simple_text_with_structure(text, is_first_page=False):
+    """
+    Process simple extracted text with resume structure detection
+    """
+    lines = text.split('\n')
+    html_content = '<div class="structured-content">\n'
+    
+    in_list = False
+    
+    for i, line in enumerate(lines):
+        line = line.strip()
+        if not line:
+            if in_list:
+                html_content += '</ul>\n'
+                in_list = False
+            continue
+        
+        # Classify line type for proper HTML structure
+        line_type = classify_resume_line_for_html(line, i == 0 and is_first_page)
+        
+        # Close list if we're starting a non-bullet item
+        if in_list and line_type != 'bullet_point':
+            html_content += '</ul>\n'
+            in_list = False
+        
+        if line_type == 'name':
+            html_content += f'<h1 class="resume-name">{escape_html(line)}</h1>\n'
+        elif line_type == 'contact':
+            html_content += f'<p class="contact-info">{escape_html(line)}</p>\n'
+        elif line_type == 'section_header':
+            html_content += f'<h2 class="section-header">{escape_html(line)}</h2>\n'
+        elif line_type == 'job_title':
+            html_content += f'<h3 class="job-title">{escape_html(line)}</h3>\n'
+        elif line_type == 'company_info':
+            html_content += f'<p class="company-info">{escape_html(line)}</p>\n'
+        elif line_type == 'bullet_point':
+            if not in_list:
+                html_content += '<ul class="bullet-list">\n'
+                in_list = True
+            clean_text = line.lstrip('•▪▫◦‣⁃-* ').strip()
+            html_content += f'<li class="bullet-point">{escape_html(clean_text)}</li>\n'
+        else:
+            html_content += f'<p class="resume-paragraph">{escape_html(line)}</p>\n'
+    
+    # Close any open list
+    if in_list:
+        html_content += '</ul>\n'
+    
+    html_content += '</div>\n'
+    return html_content
+
 def process_text_blocks(text_blocks, page_width, page_height):
     """
-    Process text blocks with position and formatting preservation
+    Process text blocks with simple formatting (fallback method)
     """
     html_content = '<div class="text-content">\n'
+    
+    all_text_lines = []
     
     for block in text_blocks.get("blocks", []):
         if "lines" not in block:
@@ -121,38 +182,19 @@ def process_text_blocks(text_blocks, page_width, page_height):
             if not line.get("spans"):
                 continue
             
-            # Calculate relative positioning
-            bbox = line["bbox"]
-            x_pos = (bbox[0] / page_width) * 100
-            y_pos = (bbox[1] / page_height) * 100
-            
-            line_html = f'<div class="text-line" style="position: absolute; left: {x_pos:.1f}%; top: {y_pos:.1f}%;">'
-            
+            line_text = ""
             for span in line["spans"]:
                 text = span.get("text", "").strip()
-                if not text:
-                    continue
-                
-                # Extract font information
-                font_size = span.get("size", 12)
-                font_family = span.get("font", "Arial")
-                flags = span.get("flags", 0)
-                
-                # Determine styling
-                styles = []
-                styles.append(f"font-size: {font_size}px")
-                styles.append(f"font-family: '{font_family}', Arial, sans-serif")
-                
-                if flags & 2**4:  # Bold
-                    styles.append("font-weight: bold")
-                if flags & 2**1:  # Italic
-                    styles.append("font-style: italic")
-                
-                style_str = "; ".join(styles)
-                line_html += f'<span style="{style_str}">{escape_html(text)}</span>'
+                if text:
+                    line_text += text + " "
             
-            line_html += '</div>\n'
-            html_content += line_html
+            if line_text.strip():
+                all_text_lines.append(line_text.strip())
+    
+    # Process collected text with structure detection
+    if all_text_lines:
+        combined_text = "\n".join(all_text_lines)
+        html_content += process_simple_text_with_structure(combined_text, True)
     
     html_content += '</div>\n'
     return html_content
@@ -501,6 +543,27 @@ def generate_html_structure():
             margin-left: 20px;
             line-height: 1.4;
             list-style-type: disc;
+        }
+        .bullet-list {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .no-content {
+            color: #9CA3AF;
+            font-style: italic;
+            text-align: center;
+            padding: 40px 20px;
+            background: #F9FAFB;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .error {
+            color: #EF4444;
+            background: #FEF2F2;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #FCA5A5;
+            margin: 20px 0;
         }
         .text-content {
             position: relative;
