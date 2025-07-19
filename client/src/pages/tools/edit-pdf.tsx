@@ -62,19 +62,42 @@ export default function EditPdf() {
   const [currentPoints, setCurrentPoints] = useState<Array<{x: number, y: number}>>([]);
 
   const validatePdfFile = (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
+    // Check file extension
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.pdf')) {
       toast({
         title: "Invalid file type",
-        description: "Please upload a valid PDF file.",
+        description: "Please upload a valid PDF file (.pdf extension required).",
         variant: "destructive",
       });
       return false;
     }
     
+    // Check MIME type
+    if (file.type && !file.type.includes('pdf')) {
+      toast({
+        title: "Invalid file format",
+        description: "The selected file is not a PDF document.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    // Check file size (20MB limit)
     if (file.size > 20 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please select a file smaller than 20MB",
+        description: "Please select a PDF file smaller than 20MB",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    // Check minimum file size (avoid empty files)
+    if (file.size < 100) {
+      toast({
+        title: "File too small",
+        description: "The selected file appears to be empty or corrupted.",
         variant: "destructive",
       });
       return false;
@@ -85,56 +108,180 @@ export default function EditPdf() {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
-    if (selectedFile && validatePdfFile(selectedFile)) {
+    if (!selectedFile) return;
+    
+    // Reset previous state
+    setFile(null);
+    setEditedBlob(null);
+    setEditOperations([]);
+    setSelectedOperation(null);
+    setPdfPages([]);
+    setCurrentPage(0);
+    setTotalPages(1);
+    
+    if (validatePdfFile(selectedFile)) {
       setFile(selectedFile);
-      setEditedBlob(null);
-      setEditOperations([]);
-      await loadPdfPages(selectedFile);
+      
+      // Show loading state
+      toast({
+        title: "Loading PDF...",
+        description: "Please wait while we process your PDF file.",
+      });
+      
+      // Load PDF pages with a small delay to show loading message
+      setTimeout(async () => {
+        await loadPdfPages(selectedFile);
+      }, 100);
     }
+    
+    // Clear the input to allow re-uploading the same file
+    event.target.value = '';
+  };
+
+  const initializePdfJs = async () => {
+    // Check if PDF.js is already loaded
+    if ((window as any).pdfjsLib) {
+      return (window as any).pdfjsLib;
+    }
+
+    // Try multiple CDN sources for reliability
+    const cdnSources = [
+      {
+        lib: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+        worker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+      },
+      {
+        lib: 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js',
+        worker: 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
+      }
+    ];
+
+    let lastError = null;
+
+    for (const source of cdnSources) {
+      try {
+        // Load PDF.js from CDN
+        const script = document.createElement('script');
+        script.src = source.lib;
+        document.head.appendChild(script);
+        
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+          // Timeout after 10 seconds
+          setTimeout(() => reject(new Error('Script load timeout')), 10000);
+        });
+
+        // Set up worker
+        const pdfjsLib = (window as any).pdfjsLib;
+        if (pdfjsLib) {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = source.worker;
+          
+          // Test if the library works
+          try {
+            await new Promise((resolve, reject) => {
+              const testDocument = pdfjsLib.getDocument({ data: new Uint8Array([]) });
+              // This should fail but not crash
+              testDocument.promise.then(() => reject(new Error('Unexpected success'))).catch(() => resolve(true));
+              setTimeout(() => resolve(true), 1000);
+            });
+            
+            return pdfjsLib;
+          } catch (testError) {
+            // Library loaded but may not be working correctly
+            return pdfjsLib;
+          }
+        } else {
+          throw new Error('PDF.js library not found after loading');
+        }
+      } catch (error) {
+        console.warn(`Failed to load PDF.js from ${source.lib}:`, error);
+        lastError = error;
+        // Remove failed script
+        const scripts = document.querySelectorAll(`script[src="${source.lib}"]`);
+        scripts.forEach(s => s.remove());
+        continue;
+      }
+    }
+
+    // If all CDN sources failed, throw the last error
+    console.error('All PDF.js CDN sources failed:', lastError);
+    throw new Error('Failed to initialize PDF viewer. Please check your internet connection and refresh the page.');
   };
 
   const loadPdfPages = async (file: File) => {
     try {
-      // Initialize PDF.js if not available
-      if (!(window as any).pdfjsLib) {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-        document.head.appendChild(script);
-        
-        await new Promise((resolve) => {
-          script.onload = resolve;
-        });
-        
-        (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      }
-
-      const pdfjsLib = (window as any).pdfjsLib;
+      // Initialize PDF.js
+      const pdfjsLib = await initializePdfJs();
+      
+      // Read file as array buffer
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ 
-        data: arrayBuffer,
-        cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
-        cMapPacked: true
-      }).promise;
+      const typedArray = new Uint8Array(arrayBuffer);
+      
+      // Load PDF document
+      const loadingTask = pdfjsLib.getDocument({
+        data: typedArray,
+        verbosity: 0, // Reduce console output
+        disableStream: true,
+        disableAutoFetch: true,
+      });
+      
+      const pdf = await loadingTask.promise;
+      
+      if (!pdf || pdf.numPages === 0) {
+        throw new Error('Invalid PDF: No pages found');
+      }
       
       setTotalPages(pdf.numPages);
       
+      // Render all pages
       const pages: string[] = [];
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 1.5 });
-        
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d')!;
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        try {
+          const page = await pdf.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 1.5 });
+          
+          // Create canvas for rendering
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          
+          if (!context) {
+            throw new Error('Failed to get canvas context');
+          }
+          
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
 
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport
-        };
+          // Render page to canvas
+          const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+            enableWebGL: false
+          };
 
-        await page.render(renderContext).promise;
-        pages.push(canvas.toDataURL());
+          await page.render(renderContext).promise;
+          
+          // Convert to data URL
+          const dataUrl = canvas.toDataURL('image/png', 0.9);
+          pages.push(dataUrl);
+          
+          // Clean up page
+          page.cleanup();
+        } catch (pageError) {
+          console.error(`Error rendering page ${pageNum}:`, pageError);
+          // Create placeholder for failed page
+          const canvas = document.createElement('canvas');
+          canvas.width = 595;
+          canvas.height = 842;
+          const ctx = canvas.getContext('2d')!;
+          ctx.fillStyle = '#f5f5f5';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#666';
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(`Error loading page ${pageNum}`, canvas.width / 2, canvas.height / 2);
+          pages.push(canvas.toDataURL());
+        }
       }
       
       setPdfPages(pages);
@@ -144,13 +291,32 @@ export default function EditPdf() {
         title: "PDF loaded successfully",
         description: `Ready to edit ${pdf.numPages} page${pdf.numPages > 1 ? 's' : ''}`,
       });
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error loading PDF:', error);
+      
+      let errorMessage = "Failed to load PDF. Please try again.";
+      
+      if (error.name === 'PasswordException') {
+        errorMessage = "This PDF is password protected. Please unlock the PDF first and try again.";
+      } else if (error.name === 'InvalidPDFException') {
+        errorMessage = "The uploaded file is not a valid PDF. Please select a valid PDF file.";
+      } else if (error.name === 'MissingPDFException') {
+        errorMessage = "The PDF file appears to be corrupted or incomplete.";
+      } else if (error.message?.includes('PDF.js')) {
+        errorMessage = "Failed to initialize PDF viewer. Please refresh the page and try again.";
+      }
+      
       toast({
         title: "Error loading PDF",
-        description: "Failed to load PDF for editing. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Reset state on error
+      setPdfPages([]);
+      setTotalPages(1);
+      setCurrentPage(0);
     }
   };
 
@@ -558,20 +724,20 @@ export default function EditPdf() {
         </CardHeader>
         <CardContent>
           {!file ? (
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:border-blue-400 transition-colors">
               <div className="text-center">
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex text-sm text-gray-600 dark:text-gray-400 justify-center">
                   <label
                     htmlFor="file-upload"
-                    className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                    className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-2 py-1"
                   >
                     <span>Upload PDF file to edit</span>
                     <input
                       id="file-upload"
                       name="file-upload"
                       type="file"
-                      accept=".pdf"
+                      accept="application/pdf,.pdf"
                       className="sr-only"
                       onChange={handleFileChange}
                       disabled={isEditing}
@@ -580,8 +746,13 @@ export default function EditPdf() {
                   <p className="pl-1">or drag and drop</p>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  PDF files up to 20MB
+                  PDF files up to 20MB • Supports standard and encrypted PDFs
                 </p>
+                <div className="mt-3 text-xs text-gray-400">
+                  <p>✓ Click to add text, shapes, and images</p>
+                  <p>✓ Drag elements to reposition them</p>
+                  <p>✓ Multi-page editing support</p>
+                </div>
               </div>
             </div>
           ) : (

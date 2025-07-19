@@ -1,0 +1,65 @@
+Please fix the issue of "Error loading PDF" in the Edit PDF tool. The tool should support rendering uploaded PDF files properly in the browser. Make sure the implementation includes:
+
+Frontend:
+
+Use PDF.js (latest stable version) to render PDF in a canvas or viewer on the page.
+
+Make sure PDF.js is correctly loaded and initialized.
+
+Handle file uploads using <input type="file">, and ensure it supports .pdf files only.
+
+Read uploaded file as ArrayBuffer or Uint8Array and load using PDFJS.getDocument() method.
+
+Provide a proper error handler if the PDF is encrypted or malformed.
+
+Code Sample (Frontend):
+
+html
+Copy
+Edit
+<input type="file" id="uploadPdf" accept="application/pdf" />
+<canvas id="pdfViewer"></canvas>
+<script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+<script>
+  document.getElementById('uploadPdf').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function () {
+      const typedarray = new Uint8Array(reader.result);
+
+      pdfjsLib.getDocument({ data: typedarray }).promise.then(pdf => {
+        pdf.getPage(1).then(page => {
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.getElementById('pdfViewer');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          page.render({
+            canvasContext: context,
+            viewport: viewport
+          });
+        });
+      }).catch(err => {
+        alert("Failed to load PDF. Please ensure the file is valid.");
+        console.error(err);
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  });
+</script>
+Backend:
+
+If backend is handling the file temporarily, make sure uploaded file is passed directly to frontend for rendering and not corrupted during upload.
+
+Disable any conversion or validation that alters file bytes before rendering.
+
+Ensure CORS is not blocking local PDF access on frontend.
+
+Additional Notes:
+
+Ensure PDF is not encrypted. If encrypted, show a friendly error message.
+
+Make sure your Replit project allows file reading and uses HTTPS if you’re embedding PDF.js from a CDN.
