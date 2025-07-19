@@ -46,6 +46,18 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve standalone HTML files
+  app.get("/*.html", (req, res, next) => {
+    const fileName = path.basename(req.path);
+    const filePath = path.join(process.cwd(), fileName);
+    
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      next();
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/signup", async (req, res) => {
     try {
