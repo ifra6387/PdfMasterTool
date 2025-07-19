@@ -18,6 +18,7 @@ interface SupabaseAuthContextType {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
+  signInWithOAuth: (provider: 'google' | 'github' | 'discord') => Promise<void>;
   isConfigured: boolean;
 }
 
@@ -25,6 +26,7 @@ const SupabaseAuthContext = createContext<SupabaseAuthContextType>({
   user: null,
   loading: true,
   logout: async () => {},
+  signInWithOAuth: async () => {},
   isConfigured: false,
 });
 
@@ -117,8 +119,32 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'github' | 'discord') => {
+    if (!supabase) {
+      console.error('Supabase not configured');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) {
+        console.error('OAuth sign in error:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('OAuth sign in failed:', error);
+      throw error;
+    }
+  };
+
   return (
-    <SupabaseAuthContext.Provider value={{ user, loading, logout, isConfigured }}>
+    <SupabaseAuthContext.Provider value={{ user, loading, logout, signInWithOAuth, isConfigured }}>
       {children}
     </SupabaseAuthContext.Provider>
   );
