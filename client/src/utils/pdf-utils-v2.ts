@@ -559,8 +559,36 @@ async function createManualDocx(text: string, JSZip: any): Promise<Blob> {
   });
 }
 
-// Word to PDF utility - Enhanced version
+// Word to PDF utility with server-side processing for professional quality
 export async function wordToPDF(file: File): Promise<Blob> {
+  try {
+    // Use server-side conversion for professional quality
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('/api/convert/word-to-pdf', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Server-side Word to PDF conversion failed');
+    }
+    
+    // Return the PDF blob directly from server
+    return await response.blob();
+    
+  } catch (error) {
+    console.error('Word to PDF error:', error);
+    
+    // Fallback to client-side conversion if server fails
+    return wordToPDFClientSide(file);
+  }
+}
+
+// Fallback client-side Word to PDF conversion
+async function wordToPDFClientSide(file: File): Promise<Blob> {
   try {
     const mammoth = await import('mammoth');
     const arrayBuffer = await file.arrayBuffer();
@@ -578,7 +606,15 @@ export async function wordToPDF(file: File): Promise<Blob> {
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(12);
     
-    let y = 20;
+    // Add header indicating fallback mode
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(16);
+    pdf.text('Word to PDF Conversion', 20, 20);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.text('(Client-side fallback - for better quality, ensure server is available)', 20, 30);
+    
+    let y = 50;
     const pageHeight = pdf.internal.pageSize.getHeight();
     const marginBottom = 20;
     
@@ -588,28 +624,37 @@ export async function wordToPDF(file: File): Promise<Blob> {
         // Handle headings with larger font size
         if (element.tagName.match(/^H[1-6]$/)) {
           pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(16);
+          pdf.setFontSize(14);
         } else {
           pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(12);
+          pdf.setFontSize(11);
         }
         
         const lines = pdf.splitTextToSize(text, 170);
         
         // Check if we need a new page
-        if (y + (lines.length * 7) > pageHeight - marginBottom) {
+        if (y + (lines.length * 6) > pageHeight - marginBottom) {
           pdf.addPage();
           y = 20;
         }
         
         pdf.text(lines, 20, y);
-        y += lines.length * 7 + 5; // Line spacing
+        y += lines.length * 6 + 4; // Line spacing
       }
     });
     
+    // Add footer
+    const pageCount = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.text('Converted by I Love Making PDF', 20, pageHeight - 10);
+    }
+    
     return pdf.output('blob');
   } catch (error) {
-    console.error('Word to PDF error:', error);
+    console.error('Word to PDF conversion error:', error);
     throw new Error('Failed to convert Word to PDF. Please ensure the file is a valid Word document (.docx format).');
   }
 }
