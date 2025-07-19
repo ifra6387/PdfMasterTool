@@ -22,77 +22,173 @@ def extract_text_with_pdfplumber(pdf_path):
         
         with pdfplumber.open(pdf_path) as pdf:
             for page_num, page in enumerate(pdf.pages):
-                # Extract text with layout preservation
-                text = page.extract_text(layout=True, x_tolerance=3, y_tolerance=3)
-                if not text:
+                # Try to extract with character-level information for better formatting detection
+                chars = page.chars
+                if not chars:
                     continue
                 
-                lines = text.split('\n')
+                # Group characters into lines and detect formatting
+                lines_data = extract_formatted_lines(chars)
+                
                 current_paragraph = []
                 
-                for i, line in enumerate(lines):
-                    line = line.strip()
-                    
-                    if not line:
-                        # Empty line indicates paragraph break
+                for line_data in lines_data:
+                    if not line_data['text'].strip():
+                        # Empty line - paragraph break
                         if current_paragraph:
-                            paragraph_text = ' '.join(current_paragraph)
-                            if len(paragraph_text.strip()) > 10:
-                                # Detect if this might be a heading based on characteristics
-                                is_heading = detect_heading(paragraph_text, current_paragraph)
-                                structured_content.append({
-                                    'text': paragraph_text,
-                                    'type': 'heading' if is_heading else 'paragraph',
-                                    'level': get_heading_level(paragraph_text) if is_heading else None
-                                })
+                            para_text = ' '.join([l['text'] for l in current_paragraph])
+                            if len(para_text.strip()) > 8:
+                                # Analyze the paragraph for type and formatting
+                                para_info = analyze_paragraph(current_paragraph, para_text)
+                                structured_content.append(para_info)
                             current_paragraph = []
+                        continue
+                    
+                    # Check if this line should start a new paragraph
+                    should_break = should_start_new_paragraph(line_data, current_paragraph)
+                    
+                    if should_break and current_paragraph:
+                        para_text = ' '.join([l['text'] for l in current_paragraph])
+                        if len(para_text.strip()) > 8:
+                            para_info = analyze_paragraph(current_paragraph, para_text)
+                            structured_content.append(para_info)
+                        current_paragraph = [line_data]
                     else:
-                        # Check for natural paragraph breaks
-                        should_break = False
-                        
-                        if current_paragraph:
-                            last_line = current_paragraph[-1]
-                            # Detect paragraph breaks by sentence endings and capitalization
-                            if (last_line.endswith('.') or last_line.endswith('!') or 
-                                last_line.endswith('?') or last_line.endswith(':')):
-                                if line[0].isupper() and len(line) > 5:
-                                    should_break = True
-                            
-                            # Detect job titles, dates, or section headers
-                            if (is_likely_heading_or_title(line) or 
-                                contains_date_pattern(line) or
-                                is_section_break(line, last_line)):
-                                should_break = True
-                        
-                        if should_break:
-                            paragraph_text = ' '.join(current_paragraph)
-                            if len(paragraph_text.strip()) > 10:
-                                is_heading = detect_heading(paragraph_text, current_paragraph)
-                                structured_content.append({
-                                    'text': paragraph_text,
-                                    'type': 'heading' if is_heading else 'paragraph',
-                                    'level': get_heading_level(paragraph_text) if is_heading else None
-                                })
-                            current_paragraph = [line]
-                        else:
-                            current_paragraph.append(line)
+                        current_paragraph.append(line_data)
                 
                 # Add remaining content
                 if current_paragraph:
-                    paragraph_text = ' '.join(current_paragraph)
-                    if len(paragraph_text.strip()) > 10:
-                        is_heading = detect_heading(paragraph_text, current_paragraph)
-                        structured_content.append({
-                            'text': paragraph_text,
-                            'type': 'heading' if is_heading else 'paragraph',
-                            'level': get_heading_level(paragraph_text) if is_heading else None
-                        })
+                    para_text = ' '.join([l['text'] for l in current_paragraph])
+                    if len(para_text.strip()) > 8:
+                        para_info = analyze_paragraph(current_paragraph, para_text)
+                        structured_content.append(para_info)
         
         return structured_content
     
     except Exception as e:
         print(f"pdfplumber extraction failed: {e}", file=sys.stderr)
         return None
+
+def extract_formatted_lines(chars):
+    """Extract lines with formatting information from character data"""
+    if not chars:
+        return []
+    
+    # Group characters by line (y-coordinate)
+    lines = {}
+    for char in chars:
+        y = round(char['y0'], 1)  # Round to avoid floating point issues
+        if y not in lines:
+            lines[y] = []
+        lines[y].append(char)
+    
+    # Sort lines by y-coordinate (top to bottom)
+    sorted_lines = []
+    for y in sorted(lines.keys(), reverse=True):  # Reverse because y increases downward in PDFs
+        line_chars = sorted(lines[y], key=lambda c: c['x0'])  # Sort characters left to right
+        
+        # Combine characters into text with formatting info
+        line_text = ''.join([c['text'] for c in line_chars])
+        
+        # Analyze formatting
+        font_sizes = [c.get('size', 12) for c in line_chars if c.get('size')]
+        font_names = [c.get('fontname', '') for c in line_chars if c.get('fontname')]
+        
+        avg_font_size = sum(font_sizes) / len(font_sizes) if font_sizes else 12
+        is_bold = any('bold' in str(name).lower() for name in font_names)
+        
+        sorted_lines.append({
+            'text': line_text.strip(),
+            'font_size': avg_font_size,
+            'is_bold': is_bold,
+            'y_position': y,
+            'char_count': len(line_chars)
+        })
+    
+    return sorted_lines
+
+def should_start_new_paragraph(line_data, current_paragraph):
+    """Determine if a line should start a new paragraph"""
+    if not current_paragraph:
+        return False
+    
+    last_line = current_paragraph[-1]
+    
+    # Check for formatting changes that suggest new paragraph
+    font_size_change = abs(line_data['font_size'] - last_line['font_size']) > 1
+    bold_change = line_data['is_bold'] != last_line['is_bold']
+    
+    # Check for content patterns
+    text = line_data['text']
+    last_text = last_line['text']
+    
+    # Sentence ending followed by capitalized text
+    sentence_end = last_text.rstrip().endswith(('.', '!', '?', ':'))
+    starts_capital = text and text[0].isupper()
+    
+    # Date patterns, job titles, section headers
+    has_date = contains_date_pattern(text)
+    is_title = is_likely_heading_or_title(text)
+    
+    return (font_size_change or bold_change or 
+            (sentence_end and starts_capital) or 
+            has_date or is_title)
+
+def analyze_paragraph(paragraph_lines, text):
+    """Analyze a paragraph to determine its type and formatting"""
+    if not paragraph_lines:
+        return {'text': text, 'type': 'paragraph', 'formatting': {}}
+    
+    # Analyze formatting across the paragraph
+    font_sizes = [line['font_size'] for line in paragraph_lines]
+    is_bold = any(line['is_bold'] for line in paragraph_lines)
+    avg_font_size = sum(font_sizes) / len(font_sizes)
+    
+    # Determine paragraph type
+    is_heading = detect_advanced_heading(text, paragraph_lines)
+    
+    return {
+        'text': text,
+        'type': 'heading' if is_heading else 'paragraph',
+        'level': get_heading_level(text) if is_heading else None,
+        'formatting': {
+            'is_bold': is_bold,
+            'font_size': avg_font_size,
+            'line_count': len(paragraph_lines)
+        }
+    }
+
+def detect_advanced_heading(text, lines):
+    """Advanced heading detection using formatting and content analysis"""
+    if not text or len(text) > 200:
+        return False
+    
+    # Get formatting info
+    avg_font_size = sum(line['font_size'] for line in lines) / len(lines)
+    is_bold = any(line['is_bold'] for line in lines)
+    
+    # Content-based indicators
+    content_indicators = [
+        text.isupper(),  # ALL CAPS
+        len(text.split()) <= 10,  # Short phrases
+        text.endswith(':'),  # Ends with colon
+        any(word in text.lower() for word in ['experience', 'education', 'skills', 'projects', 'work', 'summary']),
+        contains_date_pattern(text),
+        is_likely_heading_or_title(text)
+    ]
+    
+    # Formatting-based indicators
+    format_indicators = [
+        is_bold,
+        avg_font_size > 12,  # Larger than normal text
+        len(lines) == 1  # Single line
+    ]
+    
+    # Combine indicators
+    content_score = sum(content_indicators)
+    format_score = sum(format_indicators)
+    
+    return (content_score >= 2) or (content_score >= 1 and format_score >= 2)
 
 def detect_heading(text, lines):
     """Detect if text is likely a heading based on various criteria"""
@@ -193,31 +289,23 @@ def extract_text_with_pymupdf(pdf_path):
         return None
 
 def create_word_document(structured_content, output_path):
-    """Create professionally formatted Word document with proper styling and structure"""
+    """Create professionally formatted Word document with advanced formatting preservation"""
     try:
         doc = Document()
         
-        # Set document margins and page layout
+        # Set document margins and page layout to match typical resume format
         section = doc.sections[0]
         section.page_height = Inches(11)
         section.page_width = Inches(8.5)
-        section.left_margin = Inches(1)
-        section.right_margin = Inches(1)
-        section.top_margin = Inches(1)
-        section.bottom_margin = Inches(1)
+        section.left_margin = Inches(0.7)
+        section.right_margin = Inches(0.7)
+        section.top_margin = Inches(0.7)
+        section.bottom_margin = Inches(0.7)
         
-        # Configure Normal style
-        normal_style = doc.styles['Normal']
-        normal_font = normal_style.font
-        normal_font.name = 'Times New Roman'
-        normal_font.size = Pt(12)
+        # Configure styles
+        configure_document_styles(doc)
         
-        normal_paragraph_format = normal_style.paragraph_format
-        normal_paragraph_format.space_after = Pt(6)
-        normal_paragraph_format.line_spacing = 1.15
-        normal_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        
-        # Add content with proper formatting based on type
+        # Add content with advanced formatting
         for item in structured_content:
             if not item['text'].strip():
                 continue
@@ -225,48 +313,15 @@ def create_word_document(structured_content, output_path):
             clean_text = item['text'].strip()
             clean_text = ' '.join(clean_text.split())  # Remove extra whitespace
             
-            if len(clean_text) < 5:  # Skip very short fragments
+            if len(clean_text) < 3:  # Skip very short fragments
                 continue
             
+            formatting = item.get('formatting', {})
+            
             if item['type'] == 'heading':
-                # Create heading with appropriate formatting
-                level = item.get('level', 2)
-                if level == 1:
-                    # Main section headings
-                    para = doc.add_heading(clean_text, level=1)
-                    para.paragraph_format.space_before = Pt(18)
-                    para.paragraph_format.space_after = Pt(12)
-                else:
-                    # Subsection headings or job titles
-                    para = doc.add_heading(clean_text, level=2)
-                    para.paragraph_format.space_before = Pt(12)
-                    para.paragraph_format.space_after = Pt(6)
-                
-                # Make sure heading font is consistent
-                for run in para.runs:
-                    run.font.name = 'Times New Roman'
-                    run.bold = True
+                create_formatted_heading(doc, clean_text, item.get('level', 2), formatting)
             else:
-                # Regular paragraph
-                para = doc.add_paragraph()
-                
-                # Check if paragraph contains formatting cues
-                if clean_text.isupper() and len(clean_text) < 100:
-                    # Short all-caps text - make it bold
-                    run = para.add_run(clean_text)
-                    run.font.name = 'Times New Roman'
-                    run.font.size = Pt(12)
-                    run.bold = True
-                else:
-                    # Regular text with potential bold keywords
-                    run = para.add_run(clean_text)
-                    run.font.name = 'Times New Roman'
-                    run.font.size = Pt(12)
-                
-                # Paragraph formatting
-                para.paragraph_format.space_after = Pt(6)
-                para.paragraph_format.line_spacing = 1.15
-                para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                create_formatted_paragraph(doc, clean_text, formatting)
         
         # Ensure we have content
         if len(doc.paragraphs) == 0:
@@ -274,13 +329,129 @@ def create_word_document(structured_content, output_path):
         
         # Save the document
         doc.save(output_path)
-        print(f"Word document created with {len(doc.paragraphs)} elements ({len([item for item in structured_content if item['type'] == 'heading'])} headings)", file=sys.stderr)
+        
+        # Count elements
+        heading_count = len([item for item in structured_content if item['type'] == 'heading'])
+        para_count = len([item for item in structured_content if item['type'] == 'paragraph'])
+        print(f"Word document created with {len(doc.paragraphs)} elements ({heading_count} headings, {para_count} paragraphs)", file=sys.stderr)
         return True
         
     except Exception as e:
         print(f"Word document creation failed: {e}", file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
         return False
+
+def configure_document_styles(doc):
+    """Configure document styles for professional appearance"""
+    from docx.enum.style import WD_STYLE_TYPE
+    
+    # Normal style
+    normal_style = doc.styles['Normal']
+    normal_font = normal_style.font
+    normal_font.name = 'Calibri'  # More modern font
+    normal_font.size = Pt(11)
+    
+    normal_paragraph_format = normal_style.paragraph_format
+    normal_paragraph_format.space_after = Pt(6)
+    normal_paragraph_format.line_spacing = 1.15
+    normal_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+def create_formatted_heading(doc, text, level, formatting):
+    """Create a heading with proper formatting"""
+    # Determine heading level and styling
+    if level == 1 or any(word in text.lower() for word in ['experience', 'education', 'skills', 'summary']):
+        heading_level = 1
+        space_before = Pt(16)
+        space_after = Pt(8)
+    else:
+        heading_level = 2
+        space_before = Pt(10)
+        space_after = Pt(4)
+    
+    para = doc.add_heading(text, level=heading_level)
+    para.paragraph_format.space_before = space_before
+    para.paragraph_format.space_after = space_after
+    
+    # Apply additional formatting based on original
+    for run in para.runs:
+        run.font.name = 'Calibri'
+        run.bold = True
+        
+        # Adjust font size based on original
+        original_size = formatting.get('font_size', 14)
+        if original_size > 14:
+            run.font.size = Pt(16)
+        elif original_size > 12:
+            run.font.size = Pt(14)
+        else:
+            run.font.size = Pt(13)
+
+def create_formatted_paragraph(doc, text, formatting):
+    """Create a paragraph with preserved formatting"""
+    para = doc.add_paragraph()
+    
+    # Check for special formatting patterns
+    if text.isupper() and len(text) < 100:
+        # All caps - likely important text
+        run = para.add_run(text)
+        run.font.name = 'Calibri'
+        run.font.size = Pt(11)
+        run.bold = True
+    elif formatting.get('is_bold', False) or any(keyword in text.lower() for keyword in ['ui/ux', 'designer', 'developer', 'manager']):
+        # Bold text or job titles
+        run = para.add_run(text)
+        run.font.name = 'Calibri'
+        run.font.size = Pt(11)
+        run.bold = True
+    else:
+        # Regular text with potential inline formatting
+        create_text_with_inline_formatting(para, text)
+    
+    # Paragraph spacing
+    para.paragraph_format.space_after = Pt(4)
+    para.paragraph_format.line_spacing = 1.1
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+def create_text_with_inline_formatting(para, text):
+    """Create text with potential inline formatting like bold keywords"""
+    import re
+    
+    # Keywords that should be bold
+    bold_keywords = ['ui/ux', 'figma', 'adobe xd', 'wordpress', 'html', 'css', 'javascript', 'react', 'vue', 'angular']
+    
+    # Split text and apply formatting
+    words = text.split()
+    current_text = []
+    
+    for word in words:
+        is_bold = any(keyword.lower() in word.lower() for keyword in bold_keywords)
+        
+        if is_bold and current_text:
+            # Add accumulated normal text
+            run = para.add_run(' '.join(current_text) + ' ')
+            run.font.name = 'Calibri'
+            run.font.size = Pt(11)
+            current_text = []
+            
+            # Add bold word
+            run = para.add_run(word + ' ')
+            run.font.name = 'Calibri'
+            run.font.size = Pt(11)
+            run.bold = True
+        elif is_bold:
+            # Add bold word directly
+            run = para.add_run(word + ' ')
+            run.font.name = 'Calibri'
+            run.font.size = Pt(11)
+            run.bold = True
+        else:
+            current_text.append(word)
+    
+    # Add remaining normal text
+    if current_text:
+        run = para.add_run(' '.join(current_text))
+        run.font.name = 'Calibri'
+        run.font.size = Pt(11)
 
 def convert_pdf_to_word(input_path, output_path):
     """Main conversion function with enhanced structure preservation"""
