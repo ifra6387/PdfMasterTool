@@ -13,8 +13,8 @@ export default function Home() {
   const { theme, toggleTheme } = useTheme();
 
   // Redirect to tools if already authenticated
-  if (user) {
-    setLocation('/tools');
+  if (user && !loading) {
+    setTimeout(() => setLocation('/tools'), 0);
     return null;
   }
 
@@ -48,7 +48,7 @@ export default function Home() {
 
           {/* Main Heading */}
           <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-6">
-            All-in-One PDF Toolkit
+            I Love Making PDF
           </h1>
 
           {/* Tagline */}
