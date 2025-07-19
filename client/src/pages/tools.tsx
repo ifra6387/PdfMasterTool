@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSupabaseAuth } from '@/hooks/use-supabase-auth';
 import { useLocation } from 'wouter';
 import { 
   FileText, 
@@ -20,17 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function Tools() {
-  const { user, signOut } = useSupabaseAuth();
   const [, setLocation] = useLocation();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      setLocation('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   const tools = [
     {
@@ -118,12 +107,9 @@ export default function Tools() {
             <FileText className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-heading font-bold">I Love Making PDF</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Welcome, {user.email}</span>
-            <Button variant="outline" onClick={handleSignOut}>
-              Sign Out
-            </Button>
-          </div>
+          <Button variant="outline" onClick={() => setLocation('/')}>
+            Back to Home
+          </Button>
         </div>
       </header>
 

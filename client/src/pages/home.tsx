@@ -1,19 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSupabaseAuth } from '@/hooks/use-supabase-auth';
+
 import { useLocation } from 'wouter';
 import { FileText, Zap, Shield, Globe } from 'lucide-react';
 
 export default function Home() {
-  const { user, signInWithGoogle } = useSupabaseAuth();
   const [, setLocation] = useLocation();
 
   const handleGetStarted = () => {
-    if (user) {
-      setLocation('/dashboard');
-    } else {
-      setLocation('/login');
-    }
+    setLocation('/tools');
   };
 
   return (
@@ -25,16 +20,9 @@ export default function Home() {
             <FileText className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-heading font-bold">I Love Making PDF</span>
           </div>
-          <div className="flex gap-3">
-            <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
-              {user ? 'Go to Dashboard' : 'Get Started'}
-            </Button>
-            {!user && (
-              <Button variant="outline" onClick={() => setLocation('/login')}>
-                Sign In
-              </Button>
-            )}
-          </div>
+          <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
+            Get Started
+          </Button>
         </div>
       </header>
 
