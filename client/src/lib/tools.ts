@@ -1,0 +1,239 @@
+export interface PDFTool {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: 'organize' | 'convert' | 'edit' | 'secure';
+  acceptedTypes: string[];
+  color: string;
+}
+
+export const PDF_TOOLS: PDFTool[] = [
+  {
+    id: 'merge',
+    name: 'Merge PDF',
+    description: 'Combine PDFs into one file',
+    icon: 'fas fa-object-group',
+    category: 'organize',
+    acceptedTypes: ['application/pdf'],
+    color: 'red',
+  },
+  {
+    id: 'split',
+    name: 'Split PDF',
+    description: 'Extract pages from PDF',
+    icon: 'fas fa-cut',
+    category: 'organize',
+    acceptedTypes: ['application/pdf'],
+    color: 'blue',
+  },
+  {
+    id: 'compress',
+    name: 'Compress PDF',
+    description: 'Reduce PDF file size',
+    icon: 'fas fa-compress-arrows-alt',
+    category: 'organize',
+    acceptedTypes: ['application/pdf'],
+    color: 'green',
+  },
+  {
+    id: 'pdf-to-word',
+    name: 'PDF to Word',
+    description: 'Convert PDF to DOCX',
+    icon: 'fas fa-file-word',
+    category: 'convert',
+    acceptedTypes: ['application/pdf'],
+    color: 'purple',
+  },
+  {
+    id: 'pdf-to-ppt',
+    name: 'PDF to PPT',
+    description: 'Convert PDF to PowerPoint',
+    icon: 'fas fa-file-powerpoint',
+    category: 'convert',
+    acceptedTypes: ['application/pdf'],
+    color: 'orange',
+  },
+  {
+    id: 'pdf-to-excel',
+    name: 'PDF to Excel',
+    description: 'Convert PDF to spreadsheet',
+    icon: 'fas fa-file-excel',
+    category: 'convert',
+    acceptedTypes: ['application/pdf'],
+    color: 'emerald',
+  },
+  {
+    id: 'pdf-to-jpg',
+    name: 'PDF to JPG',
+    description: 'Convert PDF to images',
+    icon: 'fas fa-file-image',
+    category: 'convert',
+    acceptedTypes: ['application/pdf'],
+    color: 'pink',
+  },
+  {
+    id: 'word-to-pdf',
+    name: 'Word to PDF',
+    description: 'Convert DOCX to PDF',
+    icon: 'fas fa-file-pdf',
+    category: 'convert',
+    acceptedTypes: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    color: 'indigo',
+  },
+  {
+    id: 'edit',
+    name: 'Edit PDF',
+    description: 'Add text and images',
+    icon: 'fas fa-edit',
+    category: 'edit',
+    acceptedTypes: ['application/pdf'],
+    color: 'yellow',
+  },
+  {
+    id: 'rotate',
+    name: 'Rotate PDF',
+    description: 'Rotate PDF pages',
+    icon: 'fas fa-redo',
+    category: 'edit',
+    acceptedTypes: ['application/pdf'],
+    color: 'teal',
+  },
+  {
+    id: 'protect',
+    name: 'Protect PDF',
+    description: 'Add password protection',
+    icon: 'fas fa-lock',
+    category: 'secure',
+    acceptedTypes: ['application/pdf'],
+    color: 'red',
+  },
+  {
+    id: 'unlock',
+    name: 'Unlock PDF',
+    description: 'Remove password protection',
+    icon: 'fas fa-unlock',
+    category: 'secure',
+    acceptedTypes: ['application/pdf'],
+    color: 'gray',
+  },
+  {
+    id: 'ppt-to-pdf',
+    name: 'PowerPoint to PDF',
+    description: 'Convert PPT to PDF',
+    icon: 'fas fa-file-pdf',
+    category: 'convert',
+    acceptedTypes: ['application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+    color: 'indigo',
+  },
+  {
+    id: 'excel-to-pdf',
+    name: 'Excel to PDF',
+    description: 'Convert Excel to PDF',
+    icon: 'fas fa-file-pdf',
+    category: 'convert',
+    acceptedTypes: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+    color: 'green',
+  },
+  {
+    id: 'html-to-pdf',
+    name: 'HTML to PDF',
+    description: 'Convert HTML to PDF',
+    icon: 'fas fa-code',
+    category: 'convert',
+    acceptedTypes: ['text/html'],
+    color: 'orange',
+  },
+  {
+    id: 'jpg-to-pdf',
+    name: 'JPG to PDF',
+    description: 'Convert images to PDF',
+    icon: 'fas fa-image',
+    category: 'convert',
+    acceptedTypes: ['image/jpeg', 'image/png'],
+    color: 'pink',
+  },
+  {
+    id: 'compare',
+    name: 'Compare PDF',
+    description: 'Compare two PDF files',
+    icon: 'fas fa-exchange-alt',
+    category: 'edit',
+    acceptedTypes: ['application/pdf'],
+    color: 'purple',
+  },
+  {
+    id: 'redact',
+    name: 'Redact PDF',
+    description: 'Remove sensitive information',
+    icon: 'fas fa-eraser',
+    category: 'secure',
+    acceptedTypes: ['application/pdf'],
+    color: 'red',
+  },
+  {
+    id: 'crop',
+    name: 'Crop PDF',
+    description: 'Crop PDF pages',
+    icon: 'fas fa-crop-alt',
+    category: 'edit',
+    acceptedTypes: ['application/pdf'],
+    color: 'teal',
+  },
+  {
+    id: 'organize',
+    name: 'Organize PDF',
+    description: 'Reorder PDF pages',
+    icon: 'fas fa-sort',
+    category: 'organize',
+    acceptedTypes: ['application/pdf'],
+    color: 'blue',
+  },
+  {
+    id: 'repair',
+    name: 'Repair PDF',
+    description: 'Fix corrupted PDF files',
+    icon: 'fas fa-wrench',
+    category: 'edit',
+    acceptedTypes: ['application/pdf'],
+    color: 'yellow',
+  },
+  {
+    id: 'add-page-numbers',
+    name: 'Add Page Numbers',
+    description: 'Add page numbers to PDF',
+    icon: 'fas fa-list-ol',
+    category: 'edit',
+    acceptedTypes: ['application/pdf'],
+    color: 'emerald',
+  },
+  {
+    id: 'scan-to-pdf',
+    name: 'Scan to PDF',
+    description: 'Convert scanned images to PDF',
+    icon: 'fas fa-scanner',
+    category: 'convert',
+    acceptedTypes: ['image/jpeg', 'image/png'],
+    color: 'indigo',
+  },
+  {
+    id: 'pdf-to-pdfa',
+    name: 'PDF to PDF/A',
+    description: 'Convert PDF to archival format',
+    icon: 'fas fa-archive',
+    category: 'convert',
+    acceptedTypes: ['application/pdf'],
+    color: 'gray',
+  },
+];
+
+export function getToolById(id: string): PDFTool | undefined {
+  return PDF_TOOLS.find(tool => tool.id === id);
+}
+
+export function getToolsByCategory(category: string): PDFTool[] {
+  if (category === 'all') {
+    return PDF_TOOLS;
+  }
+  return PDF_TOOLS.filter(tool => tool.category === category);
+}
