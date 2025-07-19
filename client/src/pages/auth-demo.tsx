@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AuthGuard } from '@/components/auth-guard';
+import { useLocation } from 'wouter';
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -22,7 +24,8 @@ interface User {
   created_at: string;
 }
 
-export default function AuthDemo() {
+function AuthDemoContent() {
+  const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -90,10 +93,14 @@ export default function AuthDemo() {
       if (error) {
         showMessage('error', error.message);
       } else if (data.user) {
-        showMessage('success', 'Account created successfully! Please check your email for verification.');
+        showMessage('success', 'Account created successfully! Redirecting to dashboard...');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
+        // Redirect to dashboard after successful signup
+        setTimeout(() => {
+          setLocation('/dashboard');
+        }, 1500);
       }
     } catch (error) {
       showMessage('error', 'An unexpected error occurred');
@@ -119,9 +126,13 @@ export default function AuthDemo() {
       if (error) {
         showMessage('error', error.message);
       } else if (data.user) {
-        showMessage('success', 'Logged in successfully!');
+        showMessage('success', 'Logged in successfully! Redirecting to dashboard...');
         setEmail('');
         setPassword('');
+        // Redirect to dashboard after successful login
+        setTimeout(() => {
+          setLocation('/dashboard');
+        }, 1500);
       }
     } catch (error) {
       showMessage('error', 'An unexpected error occurred');
@@ -140,6 +151,7 @@ export default function AuthDemo() {
         showMessage('error', error.message);
       } else {
         showMessage('success', 'Logged out successfully!');
+        setUser(null);
       }
     } catch (error) {
       showMessage('error', 'An unexpected error occurred');
@@ -219,14 +231,22 @@ export default function AuthDemo() {
                 <p className="text-gray-600 dark:text-gray-400">{new Date(user.created_at).toLocaleString()}</p>
               </div>
               
-              <Button 
-                onClick={handleLogout} 
-                disabled={loading}
-                variant="outline"
-                className="w-full"
-              >
-                {loading ? 'Logging out...' : 'Logout'}
-              </Button>
+              <div className="flex space-x-4">
+                <Button 
+                  onClick={handleLogout} 
+                  disabled={loading}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {loading ? 'Logging out...' : 'Logout'}
+                </Button>
+                <Button 
+                  onClick={() => setLocation('/dashboard')} 
+                  className="flex-1"
+                >
+                  Go to Dashboard
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -331,5 +351,13 @@ export default function AuthDemo() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthDemo() {
+  return (
+    <AuthGuard requireAuth={false}>
+      <AuthDemoContent />
+    </AuthGuard>
   );
 }

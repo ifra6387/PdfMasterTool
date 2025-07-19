@@ -13,6 +13,7 @@ import Tool from "@/pages/tool";
 import Processing from "@/pages/processing";
 import Download from "@/pages/download";
 import AuthDemo from "@/pages/auth-demo";
+import Dashboard from "@/pages/dashboard";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/processing/:fileId" component={Processing} />
       <Route path="/download/:token" component={Download} />
       <Route path="/auth-demo" component={AuthDemo} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );
