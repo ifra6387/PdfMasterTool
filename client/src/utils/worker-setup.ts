@@ -1,4 +1,4 @@
-// PDF.js Worker Setup - Centralized configuration
+// PDF.js Worker Setup - Fixed version compatibility
 import * as pdfjsLib from 'pdfjs-dist';
 
 let workerInitialized = false;
@@ -6,18 +6,14 @@ let workerInitialized = false;
 export function initializePdfWorker() {
   if (!workerInitialized) {
     try {
-      // Try to use the bundled worker first
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.min.js',
-        import.meta.url,
-      ).toString();
+      // Use exact version match to avoid API/Worker version mismatch
+      const version = '3.11.174'; // Fixed compatible version
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.js`;
       workerInitialized = true;
+      console.log(`PDF.js worker initialized with version ${version}`);
     } catch (error) {
-      console.warn('Failed to load bundled PDF worker, falling back to CDN:', error);
-      
-      // Fallback to CDN version
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
-      workerInitialized = true;
+      console.error('Failed to initialize PDF worker:', error);
+      throw new Error('PDF processing initialization failed');
     }
   }
 }
