@@ -1423,6 +1423,122 @@ app.post('/api/convert/add-page-numbers', upload.single('file'), async (req, res
   }
 });
 
+// Edit PDF route
+app.post('/api/convert/edit-pdf', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Validate file type
+    if (!req.file.originalname.toLowerCase().endsWith('.pdf')) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Parse edit operations
+    const editOperations = req.body.editOperations;
+    if (!editOperations) {
+      return res.status(400).json({ message: "No edit operations provided." });
+    }
+
+    let operations;
+    try {
+      operations = typeof editOperations === 'string' ? JSON.parse(editOperations) : editOperations;
+    } catch (e) {
+      return res.status(400).json({ message: "Invalid edit operations format." });
+    }
+
+    if (!Array.isArray(operations) || operations.length === 0) {
+      return res.status(400).json({ message: "Please provide valid edit operations." });
+    }
+
+    // Setup output paths
+    const outputDir = path.join(process.cwd(), 'outputs');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const originalName = path.parse(req.file.originalname).name;
+    const outputFilename = `${originalName}_edited_${Date.now()}.pdf`;
+    const outputPath = path.join(outputDir, outputFilename);
+
+    const pythonScript = path.join(process.cwd(), "server", "pdf_editor.py");
+    const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+    
+    // Create a temporary file with proper extension for Python script validation
+    const tempInputPath = path.join(path.dirname(req.file.path), req.file.originalname);
+    fs.copyFileSync(req.file.path, tempInputPath);
+    
+    console.log(`Editing PDF: ${req.file.originalname} with ${operations.length} operations`);
+    
+    const result = await new Promise<string>((resolve, reject) => {
+      const editOperationsJson = JSON.stringify(operations);
+      const args = [pythonScript, 'edit', tempInputPath, outputPath, editOperationsJson];
+      
+      const python = spawn(pythonPath, args, {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      python.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(stdout.trim());
+            if (result.success) {
+              resolve(result.message);
+            } else {
+              reject(new Error(result.error || "Unknown error"));
+            }
+          } catch (e) {
+            resolve("PDF edited successfully");
+          }
+        } else {
+          reject(new Error(`PDF editing failed (exit code ${code}): ${stderr || stdout || "Unknown error"}`));
+        }
+      });
+
+      python.on('error', (error) => {
+        reject(new Error(`Failed to start Python process: ${error.message}`));
+      });
+    });
+
+    // Check if output file was created
+    if (!fs.existsSync(outputPath)) {
+      throw new Error("Output file was not created");
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    
+    const fileStream = fs.createReadStream(outputPath);
+    fileStream.pipe(res);
+
+    setTimeout(() => {
+      try {
+        fs.unlinkSync(req.file!.path);
+        fs.unlinkSync(tempInputPath);
+        fs.unlinkSync(outputPath);
+      } catch (err) {
+        console.error('Cleanup error:', err);
+      }
+    }, 30000);
+
+  } catch (error: any) {
+    console.error('PDF editing error:', error);
+    res.status(500).json({ message: error.message || "Failed to edit PDF. Please try again." });
+  }
+});
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -145,6 +145,13 @@ const toolCategories = [
         description: 'Add watermarks and page numbers',
         icon: Droplets,
         color: 'text-primary'
+      },
+      {
+        id: 'edit',
+        name: 'Edit PDF',
+        description: 'Add text, shapes, images, and annotations',
+        icon: Edit3,
+        color: 'text-accent'
       }
     ]
   },

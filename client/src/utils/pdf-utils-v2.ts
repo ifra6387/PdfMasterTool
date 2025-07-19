@@ -890,6 +890,34 @@ export async function addPageNumbersToPDF(
   }
 }
 
+// PDF editing utility with server-side processing
+export async function editPDF(file: File, editOperations: any[]): Promise<Blob> {
+  try {
+    if (!editOperations || editOperations.length === 0) {
+      throw new Error('No edit operations provided.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('editOperations', JSON.stringify(editOperations));
+
+    const response = await fetch('/api/convert/edit-pdf', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      throw new Error(errorData.message || `HTTP error ${response.status}`);
+    }
+
+    return await response.blob();
+  } catch (error) {
+    console.error('PDF editing error:', error);
+    throw new Error(error instanceof Error ? error.message : 'Failed to edit PDF. Please try again.');
+  }
+}
+
 // PDF to Excel utility - New implementation
 export async function pdfToExcel(file: File): Promise<Blob> {
   try {
