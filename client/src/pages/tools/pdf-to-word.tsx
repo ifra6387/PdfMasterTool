@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 import PDFToolInterface from '@/components/pdf-tool-interface';
-import { pdfToWord } from '@/utils/pdf-utils';
+import { pdfToWord } from '@/utils/pdf-utils-v2';
 
 export default function PDFToWord() {
   const handleProcess = async (files: File[]): Promise<Blob> => {

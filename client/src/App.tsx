@@ -27,6 +27,10 @@ import PDFToJPG from "@/pages/tools/pdf-to-jpg";
 import JPGToPDF from "@/pages/tools/jpg-to-pdf";
 import ProtectPDF from "@/pages/tools/protect-pdf";
 import UnlockPDF from "@/pages/tools/unlock-pdf";
+import PDFToExcel from "@/pages/tools/pdf-to-excel";
+import ExcelToPDF from "@/pages/tools/excel-to-pdf";
+import PDFToHTML from "@/pages/tools/pdf-to-html";
+import HTMLToPDF from "@/pages/tools/html-to-pdf";
 
 function Router() {
   return (
@@ -66,6 +70,10 @@ function Router() {
       <Route path="/tool/jpg-to-pdf" component={JPGToPDF} />
       <Route path="/tool/protect" component={ProtectPDF} />
       <Route path="/tool/unlock" component={UnlockPDF} />
+      <Route path="/tool/pdf-to-excel" component={PDFToExcel} />
+      <Route path="/tool/excel-to-pdf" component={ExcelToPDF} />
+      <Route path="/tool/pdf-to-html" component={PDFToHTML} />
+      <Route path="/tool/html-to-pdf" component={HTMLToPDF} />
       
       {/* Alternative routes with /tools/ prefix */}
       <Route path="/tools/merge" component={MergePDF} />
@@ -77,6 +85,10 @@ function Router() {
       <Route path="/tools/jpg-to-pdf" component={JPGToPDF} />
       <Route path="/tools/protect" component={ProtectPDF} />
       <Route path="/tools/unlock" component={UnlockPDF} />
+      <Route path="/tools/pdf-to-excel" component={PDFToExcel} />
+      <Route path="/tools/excel-to-pdf" component={ExcelToPDF} />
+      <Route path="/tools/pdf-to-html" component={PDFToHTML} />
+      <Route path="/tools/html-to-pdf" component={HTMLToPDF} />
       
       {/* Fallback for other tools */}
       <Route path="/tool/:toolName" component={ToolPlaceholder} />

@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileImage } from 'lucide-react';
 import PDFToolInterface from '@/components/pdf-tool-interface';
-import { imagesToPDF } from '@/utils/pdf-utils';
+import { imagesToPDF } from '@/utils/pdf-utils-v2';
 
 export default function JPGToPDF() {
   const handleProcess = async (files: File[]): Promise<Blob> => {

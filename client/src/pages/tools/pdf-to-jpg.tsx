@@ -3,7 +3,7 @@ import { FileImage } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import PDFToolInterface from '@/components/pdf-tool-interface';
-import { pdfToImages } from '@/utils/pdf-utils';
+import { pdfToImages } from '@/utils/pdf-utils-v2';
 
 const ImageOptions = ({ value, onChange }: { value: any; onChange: (value: any) => void }) => {
   return (

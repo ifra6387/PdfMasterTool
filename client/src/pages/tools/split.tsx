@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import PDFToolInterface from '@/components/pdf-tool-interface';
-import { splitPDF } from '@/utils/pdf-utils';
+import { splitPDF } from '@/utils/pdf-utils-v2';
 
 const SplitOptions = ({ value, onChange }: { value: any; onChange: (value: any) => void }) => {
   return (

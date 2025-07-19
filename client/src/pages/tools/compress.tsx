@@ -3,7 +3,7 @@ import { Archive } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import PDFToolInterface from '@/components/pdf-tool-interface';
-import { compressPDF } from '@/utils/pdf-utils';
+import { compressPDF } from '@/utils/pdf-utils-v2';
 
 const CompressOptions = ({ value, onChange }: { value: any; onChange: (value: any) => void }) => {
   const quality = value.quality || 0.7;

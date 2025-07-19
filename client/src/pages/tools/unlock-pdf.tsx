@@ -3,7 +3,7 @@ import { Unlock } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import PDFToolInterface from '@/components/pdf-tool-interface';
-import { unlockPDF } from '@/utils/pdf-utils';
+import { unlockPDF } from '@/utils/pdf-utils-v2';
 
 const UnlockOptions = ({ value, onChange }: { value: any; onChange: (value: any) => void }) => {
   return (
