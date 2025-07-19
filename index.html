@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I Love Making PDF - Professional PDF Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'heading': ['Poppins', 'sans-serif'],
+                        'body': ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#10B981',
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="font-body bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
+    <!-- Header Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span class="text-xl font-heading font-bold text-slate-900 dark:text-white">
+                        I Love Making PDF
+                    </span>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex items-center space-x-4">
+                    <button
+                        id="theme-toggle"
+                        class="p-2 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                    >
+                        <i id="sun-icon" data-lucide="sun" class="w-5 h-5 text-yellow-500 hidden dark:block"></i>
+                        <i id="moon-icon" data-lucide="moon" class="w-5 h-5 text-slate-600 block dark:hidden"></i>
+                    </button>
+                    
+                    <a
+                        href="login.html"
+                        class="px-4 py-2 bg-primary hover:bg-primary/90 text-white font-heading font-semibold rounded-lg transition-colors"
+                    >
+                        Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-16">
+        <div class="max-w-4xl mx-auto text-center">
+            <!-- Logo -->
+            <div class="flex items-center justify-center mb-8">
+                <div class="w-24 h-24 bg-gradient-to-r from-primary to-secondary rounded-3xl flex items-center justify-center shadow-2xl">
+                    <i data-lucide="file-text" class="w-12 h-12 text-white"></i>
+                </div>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="text-5xl md:text-7xl font-heading font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-6">
+                I Love Making PDF
+            </h1>
+
+            <!-- Description -->
+            <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+                The most complete PDF toolkit. Merge, split, compress, convert, and secure your documents — all for free with automatic 1-hour file deletion.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                <a
+                    href="signup.html"
+                    class="inline-flex items-center justify-center px-8 py-4 text-lg font-heading font-semibold bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors shadow-lg"
+                >
+                    Get Started Free
+                    <i data-lucide="arrow-right" class="ml-2 w-5 h-5"></i>
+                </a>
+                <a
+                    href="login.html"
+                    class="inline-flex items-center justify-center px-8 py-4 text-lg font-heading font-semibold bg-white/10 backdrop-blur-sm border border-white/20 text-slate-700 dark:text-slate-300 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                    Sign In
+                </a>
+            </div>
+
+            <!-- Security Features -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                <div class="flex items-center justify-center p-6 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700/50">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-secondary mr-3"></i>
+                    <span class="font-medium text-slate-700 dark:text-slate-300">Auto-delete after 1 hour</span>
+                </div>
+                <div class="flex items-center justify-center p-6 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700/50">
+                    <i data-lucide="zap" class="w-6 h-6 text-yellow-500 mr-3"></i>
+                    <span class="font-medium text-slate-700 dark:text-slate-300">Lightning fast processing</span>
+                </div>
+                <div class="flex items-center justify-center p-6 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700/50">
+                    <i data-lucide="lock" class="w-6 h-6 text-primary mr-3"></i>
+                    <span class="font-medium text-slate-700 dark:text-slate-300">100% secure and private</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Preview -->
+    <section class="py-24 px-4 sm:px-6 lg:px-8 bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-heading font-bold text-slate-900 dark:text-white mb-6">
+                    Complete PDF Toolkit
+                </h2>
+                <p class="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+                    Professional PDF tools covering all your document processing needs
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="merge" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">Merge PDFs</h3>
+                </div>
+
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="scissors" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">Split PDFs</h3>
+                </div>
+
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="archive" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">Compress</h3>
+                </div>
+
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="refresh-cw" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">Convert</h3>
+                </div>
+
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="rotate-cw" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">Rotate</h3>
+                </div>
+
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="lock" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">Protect</h3>
+                </div>
+
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="code" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">HTML to PDF</h3>
+                </div>
+
+                <div class="text-center group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-500 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="camera" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="font-heading font-semibold text-slate-900 dark:text-white">Scan to PDF</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Logo & Description -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center">
+                            <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-heading font-bold text-slate-900 dark:text-white">
+                            I Love Making PDF
+                        </h3>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-300 mb-6 max-w-md">
+                        Professional PDF tools with automatic file deletion after 1 hour for your privacy and security.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="https://linkedin.com" target="_blank" class="p-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors">
+                            <i data-lucide="linkedin" class="w-5 h-5 text-slate-600 dark:text-slate-300"></i>
+                        </a>
+                        <a href="https://github.com" target="_blank" class="p-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors">
+                            <i data-lucide="github" class="w-5 h-5 text-slate-600 dark:text-slate-300"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h4 class="font-heading font-semibold text-slate-900 dark:text-white mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">About Us</a></li>
+                        <li><a href="#" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Contact</a></li>
+                        <li><a href="#" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Blog</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="font-heading font-semibold text-slate-900 dark:text-white mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Terms of Service</a></li>
+                        <li><a href="mailto:support@ilovemakingpdf.com" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Support</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 dark:border-slate-700 mt-8 pt-8 text-center">
+                <p class="text-slate-500 dark:text-slate-400">
+                    © 2025 I Love Making PDF. All rights reserved. Files automatically deleted after 1 hour.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize theme from localStorage
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+
+        // Theme toggle functionality
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

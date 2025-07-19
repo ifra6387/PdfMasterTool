@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - I Love Making PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'heading': ['Poppins', 'sans-serif'],
+                        'body': ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#10B981',
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="font-body bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900 min-h-screen">
+    <!-- Fixed Top Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- App Logo & Name -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h1 class="text-xl font-heading font-bold text-slate-900 dark:text-white">
+                        I Love Making PDF
+                    </h1>
+                </div>
+
+                <!-- Right Navigation -->
+                <div class="flex items-center space-x-4">
+                    <!-- Dark/Light Mode Toggle -->
+                    <button
+                        id="theme-toggle"
+                        class="p-2 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                    >
+                        <i id="sun-icon" data-lucide="sun" class="w-5 h-5 text-yellow-500 hidden dark:block"></i>
+                        <i id="moon-icon" data-lucide="moon" class="w-5 h-5 text-slate-600 block dark:hidden"></i>
+                    </button>
+
+                    <!-- User Avatar -->
+                    <div class="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
+                        <span class="text-white text-sm font-semibold" id="user-initial">U</span>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <button
+                        id="logout-btn"
+                        class="flex items-center space-x-2 px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                    >
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span class="font-medium">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Hero Section -->
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-heading font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-4">
+                    PDF Tools Dashboard
+                </h2>
+                <p class="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                    Choose from our comprehensive suite of PDF tools. All processing is secure and files are auto-deleted after 1 hour.
+                </p>
+            </div>
+
+            <!-- Security Features -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16 max-w-3xl mx-auto">
+                <div class="flex items-center justify-center p-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700/50">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-secondary mr-2"></i>
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Auto-delete after 1 hour</span>
+                </div>
+                <div class="flex items-center justify-center p-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700/50">
+                    <i data-lucide="zap" class="w-5 h-5 text-yellow-500 mr-2"></i>
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Lightning fast processing</span>
+                </div>
+                <div class="flex items-center justify-center p-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-700/50">
+                    <i data-lucide="lock" class="w-5 h-5 text-primary mr-2"></i>
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">100% secure and private</span>
+                </div>
+            </div>
+
+            <!-- Tool Categories -->
+            <div class="space-y-16">
+                <!-- 1. Merge, Split, Compress PDFs -->
+                <section>
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-heading font-bold text-slate-900 dark:text-white mb-2 flex items-center">
+                            <i data-lucide="folder" class="w-6 h-6 mr-3 text-primary"></i>
+                            PDF Actions
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-300">Essential PDF manipulation tools for everyday tasks</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <a href="merge.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-blue-500 to-blue-600">
+                                <i data-lucide="merge" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Merge PDF</h4>
+                                <p class="tool-description">Combine multiple PDFs into one document</p>
+                            </div>
+                        </a>
+                        <a href="split.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-emerald-500 to-emerald-600">
+                                <i data-lucide="scissors" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Split PDF</h4>
+                                <p class="tool-description">Extract pages or divide PDF into multiple files</p>
+                            </div>
+                        </a>
+                        <a href="compress.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-purple-500 to-purple-600">
+                                <i data-lucide="archive" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Compress PDF</h4>
+                                <p class="tool-description">Reduce PDF file size while maintaining quality</p>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- 2. Convert Tools -->
+                <section>
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-heading font-bold text-slate-900 dark:text-white mb-2 flex items-center">
+                            <i data-lucide="refresh-cw" class="w-6 h-6 mr-3 text-secondary"></i>
+                            Convert Documents
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-300">Convert between PDF and other popular formats</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <a href="pdf-to-word.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-blue-500 to-indigo-500">
+                                <i data-lucide="file-text" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">PDF to Word</h4>
+                                <p class="tool-description">Convert PDF to editable Word document</p>
+                            </div>
+                        </a>
+                        <a href="word-to-pdf.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-indigo-500 to-blue-500">
+                                <i data-lucide="file-plus" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Word to PDF</h4>
+                                <p class="tool-description">Convert Word documents to PDF</p>
+                            </div>
+                        </a>
+                        <a href="pdf-to-excel.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-green-500 to-emerald-500">
+                                <i data-lucide="table" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">PDF to Excel</h4>
+                                <p class="tool-description">Extract data from PDF to Excel spreadsheet</p>
+                            </div>
+                        </a>
+                        <a href="pdf-to-jpg.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-orange-500 to-red-400">
+                                <i data-lucide="image" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">PDF to JPG</h4>
+                                <p class="tool-description">Convert PDF pages to high-quality images</p>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- 3. Edit Tools -->
+                <section>
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-heading font-bold text-slate-900 dark:text-white mb-2 flex items-center">
+                            <i data-lucide="edit-3" class="w-6 h-6 mr-3 text-purple-500"></i>
+                            Edit & Organize
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-300">Professional PDF editing and page management tools</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <a href="rotate.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-teal-500 to-cyan-500">
+                                <i data-lucide="rotate-cw" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Rotate PDF</h4>
+                                <p class="tool-description">Rotate PDF pages to correct orientation</p>
+                            </div>
+                        </a>
+                        <a href="organize.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-violet-500 to-purple-500">
+                                <i data-lucide="layers" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Organize Pages</h4>
+                                <p class="tool-description">Reorder, remove, or duplicate PDF pages</p>
+                            </div>
+                        </a>
+                        <a href="page-numbers.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-pink-500 to-rose-500">
+                                <i data-lucide="hash" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Page Numbers</h4>
+                                <p class="tool-description">Add custom page numbers to your PDF</p>
+                            </div>
+                        </a>
+                        <a href="redact.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-slate-500 to-gray-600">
+                                <i data-lucide="eye-off" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Redact PDF</h4>
+                                <p class="tool-description">Remove sensitive information permanently</p>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- 4. Secure Tools -->
+                <section>
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-heading font-bold text-slate-900 dark:text-white mb-2 flex items-center">
+                            <i data-lucide="shield" class="w-6 h-6 mr-3 text-yellow-500"></i>
+                            Security & Protection
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-300">Secure your documents with password protection</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <a href="protect.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-red-400 to-pink-500">
+                                <i data-lucide="lock" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Protect PDF</h4>
+                                <p class="tool-description">Add password protection to your PDF documents</p>
+                            </div>
+                        </a>
+                        <a href="unlock.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-green-500 to-teal-500">
+                                <i data-lucide="unlock" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Unlock PDF</h4>
+                                <p class="tool-description">Remove password protection from PDF files</p>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- 5. Web Tools -->
+                <section>
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-heading font-bold text-slate-900 dark:text-white mb-2 flex items-center">
+                            <i data-lucide="globe" class="w-6 h-6 mr-3 text-indigo-500"></i>
+                            Advanced Web Tools
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-300">Advanced PDF creation and scanning tools</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <a href="html-to-pdf.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-orange-500 to-amber-500">
+                                <i data-lucide="code" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">HTML to PDF</h4>
+                                <p class="tool-description">Convert HTML pages and websites to PDF</p>
+                            </div>
+                        </a>
+                        <a href="scan.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-blue-500 to-purple-500">
+                                <i data-lucide="camera" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Scan to PDF</h4>
+                                <p class="tool-description">Use camera to scan documents to PDF</p>
+                            </div>
+                        </a>
+                        <a href="watermark.html" class="tool-card group">
+                            <div class="tool-icon bg-gradient-to-br from-cyan-500 to-blue-500">
+                                <i data-lucide="droplets" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="tool-content">
+                                <h4 class="tool-title">Add Watermark</h4>
+                                <p class="tool-description">Add text or image watermarks to PDF</p>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Professional Footer -->
+    <footer class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Logo & Description -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center">
+                            <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-heading font-bold text-slate-900 dark:text-white">
+                            I Love Making PDF
+                        </h3>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-300 mb-4 max-w-md">
+                        The most complete PDF toolkit. Merge, split, compress, convert, and secure your documents — all for free with automatic 1-hour file deletion for your privacy.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="https://linkedin.com" target="_blank" class="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors">
+                            <i data-lucide="linkedin" class="w-5 h-5 text-slate-600 dark:text-slate-300"></i>
+                        </a>
+                        <a href="https://github.com" target="_blank" class="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors">
+                            <i data-lucide="github" class="w-5 h-5 text-slate-600 dark:text-slate-300"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h4 class="font-heading font-semibold text-slate-900 dark:text-white mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="about.html" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">About Us</a></li>
+                        <li><a href="contact.html" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Contact</a></li>
+                        <li><a href="careers.html" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Careers</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="font-heading font-semibold text-slate-900 dark:text-white mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="privacy.html" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Terms of Service</a></li>
+                        <li><a href="mailto:support@ilovemakingpdf.com" class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">support@ilovemakingpdf.com</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 dark:border-slate-700 mt-8 pt-8 text-center">
+                <p class="text-slate-500 dark:text-slate-400">
+                    © 2025 I Love Making PDF. All rights reserved. Files are automatically deleted after 1 hour for your privacy.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .tool-card {
+            @apply p-6 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/50 hover:shadow-lg hover:scale-105 transition-all duration-300 block no-underline;
+        }
+
+        .tool-icon {
+            @apply w-16 h-16 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300;
+        }
+
+        .tool-content {
+            @apply text-left;
+        }
+
+        .tool-title {
+            @apply text-lg font-heading font-semibold text-slate-900 dark:text-white mb-2;
+        }
+
+        .tool-description {
+            @apply text-sm text-slate-600 dark:text-slate-300;
+        }
+    </style>
+
+    <script>
+        // Authentication Check
+        window.addEventListener('DOMContentLoaded', function() {
+            const session = localStorage.getItem('session') || localStorage.getItem('supabase_session');
+            if (!session) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // Try to extract user initial from session
+            try {
+                if (session !== 'true') {
+                    const sessionData = JSON.parse(session);
+                    if (sessionData.user && sessionData.user.email) {
+                        document.getElementById('user-initial').textContent = sessionData.user.email.charAt(0).toUpperCase();
+                    }
+                }
+            } catch (e) {
+                console.log('Could not parse session data');
+            }
+        });
+
+        // Theme Toggle Functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // Initialize theme from localStorage
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            html.classList.add('dark');
+        }
+
+        themeToggle.addEventListener('click', function() {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // Logout Functionality
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            localStorage.removeItem('session');
+            localStorage.removeItem('supabase_session');
+            window.location.href = '/login.html';
+        });
+
+        // Initialize Lucide Icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
