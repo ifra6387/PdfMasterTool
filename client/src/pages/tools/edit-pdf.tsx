@@ -9,6 +9,7 @@ import { Upload, Download, Loader2, FileText, ArrowLeft, Type, Square, Circle, M
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { editPDF } from '@/utils/pdf-utils-v2';
+import { createPdfFallback, validatePdfStructure } from '@/utils/pdf-fallback';
 
 // Global PDF.js configuration
 declare global {
@@ -256,44 +257,96 @@ export default function EditPdf() {
       const typedarray = new Uint8Array(arrayBuffer);
       console.log('File read as typed array, size:', typedarray.length);
       
-      // Validate basic PDF structure
+      // Validate basic PDF structure  
       const header = String.fromCharCode(...typedarray.slice(0, 4));
       if (header !== '%PDF') {
         throw new Error('File is not a valid PDF (invalid header)');
       }
       console.log('PDF header validation passed');
       
-      // Configure PDF.js loading task with more error handling
-      console.log('Creating PDF loading task...');
-      const loadingTask = pdfjsLib.getDocument({
-        data: typedarray,
-        verbosity: 1, // Enable some debug output
-        disableAutoFetch: true,
-        disableStream: true,
-        disableRange: true,
-        cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
-        cMapPacked: true
-      });
+      // Additional PDF validation
+      const pdfString = String.fromCharCode(...typedarray.slice(0, Math.min(1024, typedarray.length)));
+      const hasEOF = pdfString.includes('%%EOF');
+      console.log('PDF structure check - has EOF marker:', hasEOF);
       
-      // Add progress and error listeners
-      loadingTask.onProgress = (progressData: any) => {
-        console.log('PDF loading progress:', progressData);
-      };
+      // Try multiple PDF.js loading approaches
+      console.log('Attempting PDF.js loading with multiple strategies...');
       
-      loadingTask.onPassword = (callback: any, reason: string) => {
-        console.log('PDF password required:', reason);
-        throw new Error('PasswordException: PDF requires password');
-      };
+      let pdf: any = null;
+      let lastError: any = null;
       
-      console.log('PDF loading task created, waiting for promise...');
-      
-      // Load PDF document with timeout
-      const pdf = await Promise.race([
-        loadingTask.promise,
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('PDF loading timeout')), 15000)
-        )
-      ]) as any;
+      // Strategy 1: Standard loading with minimal config
+      try {
+        console.log('Strategy 1: Basic PDF.js loading...');
+        const loadingTask1 = pdfjsLib.getDocument({
+          data: typedarray,
+          verbosity: 0
+        });
+        
+        pdf = await Promise.race([
+          loadingTask1.promise,
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Basic loading timeout')), 8000)
+          )
+        ]);
+        console.log('Strategy 1 successful!');
+      } catch (error1) {
+        console.log('Strategy 1 failed:', error1);
+        lastError = error1;
+        
+        // Strategy 2: With disabled features
+        try {
+          console.log('Strategy 2: Disabled features loading...');
+          const loadingTask2 = pdfjsLib.getDocument({
+            data: typedarray,
+            verbosity: 0,
+            disableAutoFetch: true,
+            disableStream: true,
+            disableRange: true,
+            useSystemFonts: false,
+            standardFontDataUrl: null
+          });
+          
+          pdf = await Promise.race([
+            loadingTask2.promise,
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Disabled features timeout')), 8000)
+            )
+          ]);
+          console.log('Strategy 2 successful!');
+        } catch (error2) {
+          console.log('Strategy 2 failed:', error2);
+          lastError = error2;
+          
+          // Strategy 3: Force compatibility mode
+          try {
+            console.log('Strategy 3: Compatibility mode...');
+            const loadingTask3 = pdfjsLib.getDocument({
+              data: typedarray,
+              verbosity: 0,
+              disableAutoFetch: true,
+              disableStream: true,
+              disableRange: true,
+              stopAtErrors: false,
+              maxImageSize: -1,
+              isEvalSupported: false,
+              fontExtraProperties: false
+            });
+            
+            pdf = await Promise.race([
+              loadingTask3.promise,
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Compatibility timeout')), 8000)
+              )
+            ]);
+            console.log('Strategy 3 successful!');
+          } catch (error3) {
+            console.log('Strategy 3 failed:', error3);
+            lastError = error3;
+            throw lastError || new Error('All PDF loading strategies failed');
+          }
+        }
+      }
       console.log('PDF loaded successfully, pages:', pdf.numPages);
       
       if (!pdf || pdf.numPages === 0) {
@@ -355,6 +408,30 @@ export default function EditPdf() {
         console.error('Full error object:', JSON.stringify(error, null, 2));
       }
       
+      // Check if PDF structure is valid
+      const isValidPdf = validatePdfStructure(typedarray);
+      console.log('PDF structure validation:', isValidPdf);
+      
+      // If PDF structure is valid but PDF.js failed, use fallback
+      if (isValidPdf && (Object.keys(error || {}).length === 0 || error?.message?.includes('timeout'))) {
+        console.log('Using fallback PDF renderer...');
+        try {
+          const fallbackPages = await createPdfFallback(file);
+          setPdfPages(fallbackPages);
+          setCurrentPage(0);
+          setTotalPages(1);
+          
+          toast({
+            title: "PDF loaded with limitations",
+            description: "PDF loaded successfully but preview is limited. You can still edit and save the PDF.",
+            variant: "default",
+          });
+          return;
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+        }
+      }
+      
       let errorMessage = "Failed to load PDF. Try again.";
       let errorTitle = "Error loading PDF";
       
@@ -373,14 +450,14 @@ export default function EditPdf() {
         errorMessage = "The file does not appear to be a valid PDF document.";
       } else if (error?.message?.includes('timeout')) {
         errorTitle = "Loading Timeout";
-        errorMessage = "PDF loading took too long. Please try a smaller file.";
+        errorMessage = "PDF loading took too long. The file may be corrupted or too complex.";
       } else if (error?.message?.includes('PDF.js') || !window.pdfjsLib) {
         errorTitle = "PDF Viewer Error";
         errorMessage = "PDF viewer failed to load. Please refresh the page and try again.";
       } else if (Object.keys(error || {}).length === 0) {
         // Empty error object - common PDF.js issue
         errorTitle = "PDF Processing Error";
-        errorMessage = "Unable to process this PDF file. Please try a different file or refresh the page.";
+        errorMessage = "Unable to render this PDF. The file may have an unsupported format or encoding.";
       }
       
       console.error('Showing error to user:', errorTitle, '-', errorMessage);
