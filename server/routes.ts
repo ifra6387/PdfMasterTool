@@ -46,6 +46,21 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve tools directory BEFORE other routes
+  app.get('/tools/:toolName', (req, res) => {
+    const toolName = req.params.toolName;
+    
+    // Add .html extension if not present
+    const fileName = toolName.endsWith('.html') ? toolName : `${toolName}.html`;
+    const toolPath = path.join(process.cwd(), 'tools', fileName);
+    
+    if (fs.existsSync(toolPath)) {
+      res.sendFile(toolPath);
+    } else {
+      res.status(404).json({ message: `Tool ${toolName} not found` });
+    }
+  });
+
   // Serve standalone HTML files
   app.get("/*.html", (req, res, next) => {
     const fileName = path.basename(req.path);
