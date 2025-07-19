@@ -237,8 +237,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const outputFilename = `${originalName}-converted-${Date.now()}.docx`;
       const outputPath = path.join(outputDir, outputFilename);
 
-      // Run Python converter with proper path and environment
-      const pythonScript = path.join(process.cwd(), "server", "pdf_converter.py");
+      // Run advanced Python converter with professional structure preservation
+      const pythonScript = path.join(process.cwd(), "server", "pdf_to_word_advanced.py");
       const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
       
       console.log(`Converting PDF: ${req.file.originalname}`);
