@@ -65,14 +65,14 @@ export default function SignUpStandalone() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-6">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setLocation('/')}
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 bg-white/20 dark:bg-slate-800/20 backdrop-blur-md hover:bg-white/30 dark:hover:bg-slate-800/30 transition-all duration-300"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Home</span>
@@ -82,10 +82,10 @@ export default function SignUpStandalone() {
           variant="ghost"
           size="sm"
           onClick={toggleTheme}
-          className="rounded-full p-3"
+          className="rounded-full p-3 bg-white/20 dark:bg-slate-800/20 backdrop-blur-md hover:bg-white/30 dark:hover:bg-slate-800/30 transition-all duration-300 shadow-lg dark:shadow-slate-900/40"
         >
           {theme === "dark" ? (
-            <Sun className="h-5 w-5 text-yellow-500" />
+            <Sun className="h-5 w-5 text-amber-500" />
           ) : (
             <Moon className="h-5 w-5 text-slate-600" />
           )}
@@ -94,7 +94,7 @@ export default function SignUpStandalone() {
 
       {/* Main Content */}
       <div className="flex items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 dark:border-slate-700/50">
+        <Card className="w-full max-w-md bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200/50 dark:border-slate-600/30 shadow-xl dark:shadow-slate-900/40">
           <CardHeader className="text-center">
             {/* Logo */}
             <div className="flex items-center justify-center mb-4">
@@ -113,7 +113,7 @@ export default function SignUpStandalone() {
           
           <CardContent>
             {error && (
-              <Alert className="mb-4 border-red-200 bg-red-50 dark:bg-red-900/20">
+              <Alert className="mb-4 border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 backdrop-blur-sm">
                 <AlertDescription className="text-red-800 dark:text-red-200">
                   {error}
                 </AlertDescription>
@@ -121,8 +121,8 @@ export default function SignUpStandalone() {
             )}
 
             {success && (
-              <Alert className="mb-4 border-green-200 bg-green-50 dark:bg-green-900/20">
-                <AlertDescription className="text-green-800 dark:text-green-200">
+              <Alert className="mb-4 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 backdrop-blur-sm">
+                <AlertDescription className="text-emerald-800 dark:text-emerald-200">
                   {success}
                 </AlertDescription>
               </Alert>

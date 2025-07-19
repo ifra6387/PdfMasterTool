@@ -57,17 +57,17 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-300">
       {/* Theme Toggle */}
       <div className="absolute top-6 right-6 z-10">
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleTheme}
-          className="rounded-full p-3 bg-white/20 hover:bg-white/30 dark:bg-slate-800/40 dark:hover:bg-slate-700/50 backdrop-blur-sm"
+          className="rounded-full p-3 bg-white/30 hover:bg-white/40 dark:bg-slate-800/50 dark:hover:bg-slate-700/60 backdrop-blur-md border border-white/20 dark:border-slate-600/30 shadow-lg dark:shadow-slate-900/40 transition-all duration-300"
         >
           {theme === "dark" ? (
-            <Sun className="h-5 w-5 text-yellow-500" />
+            <Sun className="h-5 w-5 text-amber-500" />
           ) : (
             <Moon className="h-5 w-5 text-slate-600" />
           )}
@@ -79,18 +79,18 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center shadow-xl dark:shadow-slate-900/40">
               <FileText className="h-8 w-8 text-white" />
             </div>
           </div>
 
           {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold font-heading bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-6">
+          <h1 className="text-5xl md:text-7xl font-bold font-heading bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-slate-100 dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent mb-6">
             I Love Making PDF
           </h1>
 
           {/* Short Description */}
-          <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
             The most complete PDF toolkit. Merge, split, compress, convert, and secure your documents — all for free.
           </p>
 
@@ -99,7 +99,7 @@ export default function Home() {
             <Button
               onClick={() => setLocation('/signin')}
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-white px-8 py-4 text-lg font-heading"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-heading shadow-lg hover:shadow-xl dark:shadow-slate-900/40 transition-all duration-300 hover:scale-105"
             >
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -108,7 +108,7 @@ export default function Home() {
               onClick={() => setLocation('/signin')}
               variant="outline"
               size="lg"
-              className="px-8 py-4 text-lg font-heading border-2"
+              className="px-8 py-4 text-lg font-heading border-2 border-slate-300 dark:border-slate-600 bg-white/30 dark:bg-slate-800/30 backdrop-blur-md hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 hover:scale-105 shadow-lg dark:shadow-slate-900/40"
             >
               Sign In
             </Button>
@@ -117,10 +117,10 @@ export default function Home() {
       </section>
 
       {/* Section 2: Tool Showcase */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white/70 dark:bg-slate-800/40 backdrop-blur-md border-y border-slate-200/50 dark:border-slate-600/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold font-heading mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold font-heading text-slate-900 dark:text-slate-100 mb-6">
               Complete PDF Toolkit
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
