@@ -1,0 +1,107 @@
+🛠️ Project Name: I Love Making PDF
+
+🎯 Objective:
+Develop a full-featured PDF utility web app on Replit replicating all functionalities of iLovePDF.com. This includes user authentication, light/dark mode, auto file deletion after 1 hour, and **full PDF operations** — built 100% with open-source tools and **without any external API keys**. Must include a max upload size of 20MB and all downloads must save files directly to user's PC.
+
+---
+
+📚 Core Features to Implement (Frontend + Backend):
+
+🧰 PDF Tools:
+1. ✅ Merge PDF
+2. ✅ Split PDF
+3. ✅ Compress PDF
+4. ✅ PDF ↔ Word
+5. ✅ PDF ↔ PowerPoint
+6. ✅ PDF ↔ Excel
+7. ✅ PDF ↔ JPG
+8. ✅ Word → PDF
+9. ✅ PowerPoint → PDF
+10. ✅ Excel → PDF
+11. ✅ HTML → PDF
+13. ✅ Compare PDF
+14. ✅ Rotate PDF
+17. ✅ Edit PDF
+18. ✅ Redact PDF
+19. ✅ Crop PDF
+20. ✅ Organize PDF
+21. ✅ Protect PDF
+22. ✅ Unlock PDF
+23. ✅ Repair PDF
+24. ✅ Add Page Numbers
+25. ✅ Scan to PDF
+26. ✅ PDF → PDF/A
+
+---
+
+🔐 Authentication (With Supabase):
+- Login, Signup, Logout with session handling
+- Optional: Track user history in Supabase
+- Must work with Replit's built-in Supabase integration
+
+---
+
+🌓 Light and Dark Mode:
+- Implement with TailwindCSS
+- Add toggle switch, save mode in `localStorage`
+
+---
+
+📥 File Upload Conditions:
+- Allow users to upload files from their **PC**
+- On upload: check size; **reject files over 20MB** with clear message
+- Allow only valid file types per tool (e.g., PDF for split, merge; JPG for JPG→PDF, etc.)
+
+---
+
+⬇️ Download Feature:
+- After processing, user clicks a **Download button**
+- Must **download and save directly to user’s PC** via browser
+- Use `a` tag + `download` attribute + blob object for frontend delivery
+
+---
+
+⏲️ Auto File Delete:
+- Uploaded and processed files must auto-delete after **1 hour**
+- Use `node-cron` or in-memory job tracking
+- Files stored locally or temporarily in Supabase must be cleaned up
+
+---
+
+📁 UI Pages to Build:
+1. Home Page – Tool selection grid
+2. Auth Pages – Login, Signup, Forgot Password
+3. Tool Pages – Upload, Options, Convert
+4. Status Page – Show progress
+5. Result Page – Download + info
+6. 404 Error Page
+
+---
+
+📦 Technologies to Use:
+- **Frontend:** HTML, TailwindCSS, Vanilla JS or React
+- **Backend:** Node.js + Express
+- **PDF Processing:** `pdf-lib`, `pdfkit`, `hummus`, `sharp`, `tesseract.js`, `xlsx-populate`, `puppeteer`, etc.
+- **Scheduler:** `node-cron`
+- **Auth/Storage:** Supabase (Replit-native)
+
+---
+
+⚠️ Key Rules:
+- ✅ No external API keys or paid services
+- ✅ 100% open-source, Replit-friendly
+- ✅ Uploads > 20MB must be rejected with error message
+- ✅ File download must trigger browser save popup
+- ✅ All features must be accessible post-auth
+- ✅ Mobile responsive + intuitive UX
+
+---
+
+🧪 Test Cases:
+- Upload a 10MB file – should work
+- Upload a 25MB file – should show "Max file size 20MB" error
+- Convert file → press Download – file must save to PC
+- File should auto-delete after 1 hour
+- Switch themes → refresh → saved preference should persist
+- Login/logout flow should be secure
+
