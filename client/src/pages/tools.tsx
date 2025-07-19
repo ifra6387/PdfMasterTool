@@ -221,16 +221,16 @@ export default function Tools() {
     async function checkAuth() {
       try {
         const currentUser = await getCurrentUser();
-        setUser(currentUser);
-        
-        if (!currentUser) {
-          setLocation('/signin');
+        if (currentUser) {
+          setUser(currentUser);
+          setLoading(false);
+        } else {
+          // No user found, redirect to home page
+          window.location.replace('/');
         }
       } catch (error) {
         console.error('Auth check error:', error);
-        setLocation('/signin');
-      } finally {
-        setLoading(false);
+        window.location.replace('/');
       }
     }
     

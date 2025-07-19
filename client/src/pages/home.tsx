@@ -48,18 +48,22 @@ export default function Home() {
         if (oauthUser) {
           console.log('OAuth user found, redirecting to dashboard...');
           setUser(oauthUser);
-          setLocation('/dashboard');
+          // Use replace instead of navigate to avoid history issues
+          window.location.replace('/dashboard');
           return;
         }
         
         // Then check for existing session
         const currentUser = await getCurrentUser();
-        setUser(currentUser);
-        
         if (currentUser) {
           console.log('Existing user session found, redirecting to dashboard...');
-          setLocation('/dashboard');
+          setUser(currentUser);
+          // Use replace for immediate redirect without flashing
+          window.location.replace('/dashboard');
+          return;
         }
+        
+        setUser(null);
       } catch (error) {
         console.error('Auth initialization error:', error);
       } finally {
