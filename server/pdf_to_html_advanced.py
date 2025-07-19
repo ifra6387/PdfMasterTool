@@ -27,14 +27,20 @@ def convert_pdf_to_html_professional(input_path, output_path):
         # Open PDF document
         pdf_doc = fitz.open(input_path)
         
+        # Get page count before processing
+        total_pages = len(pdf_doc)
+        
         # Generate HTML content
         html_content = generate_html_structure()
         page_contents = []
         
-        for page_num in range(len(pdf_doc)):
+        for page_num in range(total_pages):
             page = pdf_doc[page_num]
             page_html = process_page_advanced(page, page_num)
             page_contents.append(page_html)
+        
+        # Close document after processing
+        pdf_doc.close()
         
         # Combine all pages
         html_content += "\n".join(page_contents)
@@ -44,11 +50,9 @@ def convert_pdf_to_html_professional(input_path, output_path):
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
         
-        pdf_doc.close()
-        
         print(json.dumps({
             "success": True,
-            "message": f"PDF converted to HTML with {len(pdf_doc)} pages. Layout and images preserved."
+            "message": f"PDF converted to HTML with {total_pages} pages. Layout and images preserved."
         }))
         return True
         
@@ -274,7 +278,7 @@ def extract_page_images(page, page_num):
 
 def convert_with_pdfplumber_fallback(input_path, output_path):
     """
-    Fallback conversion using pdfplumber
+    Enhanced fallback conversion using pdfplumber with structure preservation
     """
     try:
         import pdfplumber
@@ -284,27 +288,27 @@ def convert_with_pdfplumber_fallback(input_path, output_path):
         with pdfplumber.open(input_path) as pdf:
             for page_num, page in enumerate(pdf.pages):
                 html_content += f'<div class="pdf-page" id="page-{page_num + 1}">\n'
-                html_content += f'<h2>Page {page_num + 1}</h2>\n'
+                html_content += f'<h2 class="page-header">Page {page_num + 1}</h2>\n'
                 
-                # Extract text
-                text = page.extract_text()
+                # Extract text with layout awareness
+                text = page.extract_text(layout=True, x_tolerance=2, y_tolerance=2)
                 if text:
-                    paragraphs = text.split('\n\n')
-                    for para in paragraphs:
-                        if para.strip():
-                            html_content += f'<p>{escape_html(para.strip())}</p>\n'
+                    html_content += process_text_with_resume_structure(text, page_num == 0)
                 
-                # Extract tables
+                # Extract tables with proper formatting
                 tables = page.extract_tables()
                 for table in tables:
-                    html_content += '<table class="pdf-table">\n'
-                    for row in table:
-                        html_content += '<tr>'
-                        for cell in row:
-                            cell_text = str(cell) if cell else ""
-                            html_content += f'<td>{escape_html(cell_text)}</td>'
-                        html_content += '</tr>\n'
-                    html_content += '</table>\n'
+                    if table and len(table) > 0:
+                        html_content += '<table class="pdf-table">\n'
+                        for row_idx, row in enumerate(table):
+                            if row and any(cell and str(cell).strip() for cell in row):
+                                html_content += '<tr>'
+                                for cell in row:
+                                    cell_text = str(cell).strip() if cell else ""
+                                    tag = 'th' if row_idx == 0 else 'td'
+                                    html_content += f'<{tag}>{escape_html(cell_text)}</{tag}>'
+                                html_content += '</tr>\n'
+                        html_content += '</table>\n'
                 
                 html_content += '</div>\n'
         
@@ -315,17 +319,91 @@ def convert_with_pdfplumber_fallback(input_path, output_path):
         
         print(json.dumps({
             "success": True,
-            "message": "PDF converted to HTML using fallback method"
+            "message": "PDF converted to HTML with enhanced structure preservation"
         }))
         return True
         
     except Exception as e:
-        print(f"Fallback conversion failed: {e}", file=sys.stderr)
+        print(f"Enhanced fallback conversion failed: {e}", file=sys.stderr)
         print(json.dumps({
             "success": False,
             "error": f"PDF to HTML conversion failed: {str(e)}"
         }))
         return False
+
+def process_text_with_resume_structure(text, is_first_page=False):
+    """
+    Process extracted text with resume-specific structure detection
+    """
+    lines = text.split('\n')
+    html_content = '<div class="structured-content">\n'
+    
+    for i, line in enumerate(lines):
+        line = line.strip()
+        if not line:
+            continue
+        
+        # Classify line type for proper HTML structure
+        line_type = classify_resume_line_for_html(line, i == 0 and is_first_page)
+        
+        if line_type == 'name':
+            html_content += f'<h1 class="resume-name">{escape_html(line)}</h1>\n'
+        elif line_type == 'contact':
+            html_content += f'<p class="contact-info">{escape_html(line)}</p>\n'
+        elif line_type == 'section_header':
+            html_content += f'<h2 class="section-header">{escape_html(line)}</h2>\n'
+        elif line_type == 'job_title':
+            html_content += f'<h3 class="job-title">{escape_html(line)}</h3>\n'
+        elif line_type == 'company_info':
+            html_content += f'<p class="company-info">{escape_html(line)}</p>\n'
+        elif line_type == 'bullet_point':
+            clean_text = line.lstrip('•▪▫◦‣⁃-* ').strip()
+            html_content += f'<li class="bullet-point">{escape_html(clean_text)}</li>\n'
+        else:
+            html_content += f'<p class="resume-paragraph">{escape_html(line)}</p>\n'
+    
+    html_content += '</div>\n'
+    return html_content
+
+def classify_resume_line_for_html(line, is_first_line=False):
+    """
+    Classify resume lines for proper HTML structure
+    """
+    import re
+    
+    # Name detection
+    if (is_first_line or 
+        (len(line.split()) <= 4 and line.istitle() and 
+         not any(word.lower() in ['experience', 'education', 'skills', 'work'] for word in line.split()))):
+        return 'name'
+    
+    # Contact information
+    if (any(indicator in line.lower() for indicator in ['@', 'http', 'linkedin', 'behance']) or
+        re.search(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', line) or
+        any(char.isdigit() for char in line) and len(line.split()) <= 10):
+        return 'contact'
+    
+    # Section headers
+    section_keywords = ['work experience', 'experience', 'education', 'skills', 'projects', 'summary']
+    if any(section in line.lower() for section in section_keywords):
+        return 'section_header'
+    
+    # Job titles
+    if (any(title in line.lower() for title in ['designer', 'developer', 'engineer', 'manager']) and
+        len(line.split()) <= 6 and
+        not any(word.lower() in ['solutions', 'technologies', 'with'] for word in line.split())):
+        return 'job_title'
+    
+    # Company information
+    if (any(indicator in line.lower() for indicator in ['solutions', 'technologies', 'remote', 'bangladesh']) or
+        re.search(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*\d{4}', line)):
+        return 'company_info'
+    
+    # Bullet points
+    if line.lstrip().startswith(('•', '▪', '▫', '◦', '‣', '⁃', '-', '*')):
+        return 'bullet_point'
+    
+    return 'paragraph'
 
 def generate_html_structure():
     """
@@ -355,19 +433,74 @@ def generate_html_structure():
         }
         .pdf-page {
             margin-bottom: 40px;
-            padding: 20px;
+            padding: 30px;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 8px;
             background: white;
             position: relative;
             min-height: 500px;
             page-break-after: always;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .page-header {
             color: #3B82F6;
             border-bottom: 2px solid #3B82F6;
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            font-size: 18px;
+        }
+        .structured-content {
+            line-height: 1.6;
+        }
+        .resume-name {
+            text-align: center;
+            color: #1F2937;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            border-bottom: none;
+        }
+        .contact-info {
+            text-align: center;
+            color: #6B7280;
+            font-size: 11px;
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        .section-header {
+            color: #1F2937;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 25px 0 15px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .job-title {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 15px 0 8px 0;
+        }
+        .company-info {
+            color: #6B7280;
+            font-size: 12px;
+            font-style: italic;
+            margin: 5px 0 10px 0;
+        }
+        .resume-paragraph {
+            color: #374151;
+            font-size: 12px;
+            margin: 8px 0;
+            line-height: 1.5;
+            text-align: justify;
+        }
+        .bullet-point {
+            color: #374151;
+            font-size: 11px;
+            margin: 4px 0;
+            margin-left: 20px;
+            line-height: 1.4;
+            list-style-type: disc;
         }
         .text-content {
             position: relative;
