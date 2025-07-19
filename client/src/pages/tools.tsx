@@ -27,7 +27,8 @@ import {
   Scan,
   Droplets,
   Hash,
-  Eye
+  Eye,
+  Presentation
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -77,11 +78,39 @@ const toolCategories = [
         color: 'text-accent'
       },
       {
+        id: 'word-to-pdf',
+        name: 'Word to PDF',
+        description: 'Convert Word documents to PDF',
+        icon: FileText,
+        color: 'text-primary'
+      },
+      {
         id: 'pdf-to-excel',
         name: 'PDF ↔ Excel',
         description: 'Convert between PDF and Excel files',
         icon: FileSpreadsheet,
         color: 'text-primary'
+      },
+      {
+        id: 'excel-to-pdf',
+        name: 'Excel to PDF',
+        description: 'Convert Excel spreadsheets to PDF',
+        icon: FileSpreadsheet,
+        color: 'text-accent'
+      },
+      {
+        id: 'powerpoint-to-pdf',
+        name: 'PowerPoint to PDF',
+        description: 'Convert PowerPoint presentations to PDF',
+        icon: Presentation,
+        color: 'text-primary'
+      },
+      {
+        id: 'pdf-to-powerpoint',
+        name: 'PDF to PowerPoint',
+        description: 'Convert PDF to PowerPoint presentations',
+        icon: Presentation,
+        color: 'text-accent'
       },
       {
         id: 'pdf-to-jpg',
