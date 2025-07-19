@@ -9,14 +9,13 @@ This is a professional-grade, full-stack PDF utility web application built with 
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
-- **STREAMLINED: Direct PDF Tools Dashboard**: Removed landing page and made dashboard the main page per user request
-  - **Direct Access**: Main page (index.html) now shows PDF tools dashboard immediately
-  - **No Extra Steps**: Users go directly to tool selection without landing page navigation
-  - **Pure HTML Structure**: Single main page → Individual tool pages in /tools/
-  - **All Tools Available**: 7 original HTML tools (pdf-to-word, merge, split, compress, etc.)
-  - **Professional Design**: Maintained "I Love Making PDF" branding with Tailwind CSS
-  - **Clean Server**: Express serves static HTML files with tool routing
-  - **User Request Fulfilled**: Removed landing page as requested for direct tool access
+- **MINIMAL: Simple Tool List Interface**: Removed dashboard and created basic tool list per user request
+  - **Bare Minimum**: Main page (index.html) is now just a simple HTML list of tools
+  - **No Styling**: Removed all Tailwind CSS, gradients, and fancy design elements
+  - **Direct Links**: Simple unordered list with links to each tool
+  - **7 Tools Available**: pdf-to-word, word-to-pdf, pdf-to-excel, pdf-to-jpg, merge, split, compress
+  - **Pure HTML**: No JavaScript, no frameworks, just basic HTML structure
+  - **User Request Fulfilled**: Deleted dashboard as requested for simplest possible interface
 - **BREAKTHROUGH: Google OAuth Authentication Integration**: Complete OAuth login system with Supabase integration and session handling
   - **URL Token Processing**: Automatically processes #access_token and #refresh_token from OAuth redirect URL
   - **Session Management**: Stores and restores Supabase sessions with 24-hour localStorage persistence
