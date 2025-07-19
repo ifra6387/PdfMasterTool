@@ -237,33 +237,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const outputFilename = `${originalName}-converted-${Date.now()}.docx`;
       const outputPath = path.join(outputDir, outputFilename);
 
-      // Run Python converter
+      // Run Python converter with proper path and environment
       const pythonScript = path.join(process.cwd(), "server", "pdf_converter.py");
+      const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+      
+      console.log(`Converting PDF: ${req.file.originalname}`);
+      console.log(`Python path: ${pythonPath}`);
+      console.log(`Script path: ${pythonScript}`);
+      console.log(`Output path: ${outputPath}`);
       
       const result = await new Promise<string>((resolve, reject) => {
-        const python = spawn('python3', [pythonScript, req.file!.path, outputPath]);
+        const python = spawn(pythonPath, [pythonScript, req.file!.path, outputPath], {
+          env: { ...process.env, PYTHONPATH: path.join(process.cwd(), ".pythonlibs", "lib", "python3.11", "site-packages") }
+        });
         
         let stdout = '';
         let stderr = '';
 
         python.stdout.on('data', (data) => {
-          stdout += data.toString();
+          const output = data.toString();
+          stdout += output;
+          console.log('Python stdout:', output);
         });
 
         python.stderr.on('data', (data) => {
-          stderr += data.toString();
+          const output = data.toString();
+          stderr += output;
+          console.log('Python stderr:', output);
         });
 
         python.on('close', (code) => {
+          console.log(`Python process exited with code: ${code}`);
           if (code === 0) {
             resolve(stdout);
           } else {
-            console.error('Python conversion error:', stderr);
-            reject(new Error(`Conversion failed: ${stderr || 'Unknown error'}`));
+            console.error('Python conversion failed:', stderr);
+            reject(new Error(`Conversion failed (exit code ${code}): ${stderr || 'Unknown error'}`));
           }
         });
 
         python.on('error', (err) => {
+          console.error('Python process error:', err);
           reject(new Error(`Failed to start Python process: ${err.message}`));
         });
       });
