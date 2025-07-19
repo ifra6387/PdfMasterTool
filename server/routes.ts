@@ -1211,6 +1211,218 @@ app.post('/api/convert/add-pages', upload.fields([
   }
 });
 
+// Add watermark to PDF route
+app.post('/api/convert/add-watermark', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Validate file type
+    if (!req.file.originalname.toLowerCase().endsWith('.pdf')) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Parse watermark parameters
+    const watermarkText = req.body.watermarkText?.trim();
+    if (!watermarkText) {
+      return res.status(400).json({ message: "Please provide watermark text." });
+    }
+
+    const fontSize = parseInt(req.body.fontSize) || 20;
+    const color = req.body.color || "#808080";
+    const position = req.body.position || "center";
+    const opacity = parseFloat(req.body.opacity) || 0.3;
+
+    // Setup output paths
+    const outputDir = path.join(process.cwd(), 'outputs');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const originalName = path.parse(req.file.originalname).name;
+    const outputFilename = `${originalName}_watermarked_${Date.now()}.pdf`;
+    const outputPath = path.join(outputDir, outputFilename);
+
+    const pythonScript = path.join(process.cwd(), "server", "pdf_watermark_manager.py");
+    const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+    
+    // Create a temporary file with proper extension for Python script validation
+    const tempInputPath = path.join(path.dirname(req.file.path), req.file.originalname);
+    fs.copyFileSync(req.file.path, tempInputPath);
+    
+    console.log(`Adding watermark to PDF: ${req.file.originalname} (text: ${watermarkText})`);
+    
+    const result = await new Promise<string>((resolve, reject) => {
+      const args = [pythonScript, 'watermark', tempInputPath, outputPath, watermarkText, fontSize.toString(), color, position, opacity.toString()];
+      
+      const python = spawn(pythonPath, args, {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      python.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(stdout.trim());
+            if (result.success) {
+              resolve(result.message);
+            } else {
+              reject(new Error(result.error || "Unknown error"));
+            }
+          } catch (e) {
+            resolve("Watermark added successfully");
+          }
+        } else {
+          reject(new Error(`Watermark addition failed (exit code ${code}): ${stderr || stdout || "Unknown error"}`));
+        }
+      });
+
+      python.on('error', (error) => {
+        reject(new Error(`Failed to start Python process: ${error.message}`));
+      });
+    });
+
+    // Check if output file was created
+    if (!fs.existsSync(outputPath)) {
+      throw new Error("Output file was not created");
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    
+    const fileStream = fs.createReadStream(outputPath);
+    fileStream.pipe(res);
+
+    setTimeout(() => {
+      try {
+        fs.unlinkSync(req.file!.path);
+        fs.unlinkSync(tempInputPath);
+        fs.unlinkSync(outputPath);
+      } catch (err) {
+        console.error('Cleanup error:', err);
+      }
+    }, 30000);
+
+  } catch (error: any) {
+    console.error('Watermark addition error:', error);
+    res.status(500).json({ message: error.message || "Failed to apply watermark. Please try again." });
+  }
+});
+
+// Add page numbers to PDF route
+app.post('/api/convert/add-page-numbers', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Validate file type
+    if (!req.file.originalname.toLowerCase().endsWith('.pdf')) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Parse page numbering parameters
+    const position = req.body.position || "bottom-right";
+    const fontSize = parseInt(req.body.fontSize) || 12;
+    const startNumber = parseInt(req.body.startNumber) || 1;
+
+    // Setup output paths
+    const outputDir = path.join(process.cwd(), 'outputs');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const originalName = path.parse(req.file.originalname).name;
+    const outputFilename = `${originalName}_numbered_${Date.now()}.pdf`;
+    const outputPath = path.join(outputDir, outputFilename);
+
+    const pythonScript = path.join(process.cwd(), "server", "pdf_watermark_manager.py");
+    const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+    
+    // Create a temporary file with proper extension for Python script validation
+    const tempInputPath = path.join(path.dirname(req.file.path), req.file.originalname);
+    fs.copyFileSync(req.file.path, tempInputPath);
+    
+    console.log(`Adding page numbers to PDF: ${req.file.originalname} (position: ${position})`);
+    
+    const result = await new Promise<string>((resolve, reject) => {
+      const args = [pythonScript, 'page_numbers', tempInputPath, outputPath, position, fontSize.toString(), startNumber.toString()];
+      
+      const python = spawn(pythonPath, args, {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      python.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(stdout.trim());
+            if (result.success) {
+              resolve(result.message);
+            } else {
+              reject(new Error(result.error || "Unknown error"));
+            }
+          } catch (e) {
+            resolve("Page numbers added successfully");
+          }
+        } else {
+          reject(new Error(`Page numbering failed (exit code ${code}): ${stderr || stdout || "Unknown error"}`));
+        }
+      });
+
+      python.on('error', (error) => {
+        reject(new Error(`Failed to start Python process: ${error.message}`));
+      });
+    });
+
+    // Check if output file was created
+    if (!fs.existsSync(outputPath)) {
+      throw new Error("Output file was not created");
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    
+    const fileStream = fs.createReadStream(outputPath);
+    fileStream.pipe(res);
+
+    setTimeout(() => {
+      try {
+        fs.unlinkSync(req.file!.path);
+        fs.unlinkSync(tempInputPath);
+        fs.unlinkSync(outputPath);
+      } catch (err) {
+        console.error('Cleanup error:', err);
+      }
+    }, 30000);
+
+  } catch (error: any) {
+    console.error('Page numbering error:', error);
+    res.status(500).json({ message: error.message || "Failed to add page numbers. Please try again." });
+  }
+});
+
   const httpServer = createServer(app);
   return httpServer;
 }

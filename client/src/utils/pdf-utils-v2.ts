@@ -820,6 +820,76 @@ export async function addPDFPages(mainFile: File, addFile: File, insertionPoint:
   }
 }
 
+// PDF watermark utility with server-side processing
+export async function addWatermarkToPDF(
+  file: File, 
+  watermarkText: string, 
+  fontSize: number = 20, 
+  color: string = '#808080', 
+  position: string = 'center', 
+  opacity: number = 0.3
+): Promise<Blob> {
+  try {
+    if (!watermarkText || !watermarkText.trim()) {
+      throw new Error('Please provide watermark text.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('watermarkText', watermarkText.trim());
+    formData.append('fontSize', fontSize.toString());
+    formData.append('color', color);
+    formData.append('position', position);
+    formData.append('opacity', opacity.toString());
+
+    const response = await fetch('/api/convert/add-watermark', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      throw new Error(errorData.message || `HTTP error ${response.status}`);
+    }
+
+    return await response.blob();
+  } catch (error) {
+    console.error('PDF watermark error:', error);
+    throw new Error(error instanceof Error ? error.message : 'Failed to apply watermark. Please try again.');
+  }
+}
+
+// PDF page numbering utility with server-side processing
+export async function addPageNumbersToPDF(
+  file: File, 
+  position: string = 'bottom-right', 
+  fontSize: number = 12, 
+  startNumber: number = 1
+): Promise<Blob> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('position', position);
+    formData.append('fontSize', fontSize.toString());
+    formData.append('startNumber', startNumber.toString());
+
+    const response = await fetch('/api/convert/add-page-numbers', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      throw new Error(errorData.message || `HTTP error ${response.status}`);
+    }
+
+    return await response.blob();
+  } catch (error) {
+    console.error('PDF page numbering error:', error);
+    throw new Error(error instanceof Error ? error.message : 'Failed to add page numbers. Please try again.');
+  }
+}
+
 // PDF to Excel utility - New implementation
 export async function pdfToExcel(file: File): Promise<Blob> {
   try {
