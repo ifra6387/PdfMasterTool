@@ -9,6 +9,14 @@ This is a professional-grade, full-stack PDF utility web application built with 
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
+- **BREAKTHROUGH: Professional PDF Rotation Tool**: Complete implementation with PyMuPDF and flexible page selection
+  - **Backend API**: `/api/convert/rotate-pdf` endpoint with full functionality and error handling
+  - **Python Integration**: PyMuPDF-based rotation supporting 90°, 180°, and 270° angles
+  - **Page Selection**: Advanced page range support (e.g., "1,3,5-7,10") or all pages rotation
+  - **Professional UI**: Clean frontend interface with dropdown angle selection and page input
+  - **File Validation**: Proper PDF validation with "Please upload a valid PDF file" error messages
+  - **Quality Output**: Maintains PDF layout and formatting during rotation process
+  - **Navigation**: Back button integration for seamless user experience
 - **BREAKTHROUGH: Professional PDF to Word Converter**: Complete redesign using pdf2docx library for iLovePDF-quality conversion
   - **pdf2docx Integration**: Industry-standard library for professional structure preservation
   - **Layout Recognition**: Advanced table detection, header/footer preservation, multi-page support

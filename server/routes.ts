@@ -908,6 +908,7 @@ app.post('/api/convert/rotate-pdf', upload.single('file'), async (req, res) => {
       });
 
       python.on('close', (code) => {
+        
         if (code === 0) {
           try {
             const result = JSON.parse(stdout.trim());
