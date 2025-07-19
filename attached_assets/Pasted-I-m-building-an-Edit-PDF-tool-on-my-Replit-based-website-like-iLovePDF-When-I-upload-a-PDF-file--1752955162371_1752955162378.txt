@@ -1,0 +1,77 @@
+I’m building an Edit PDF tool on my Replit-based website (like iLovePDF). When I upload a PDF file, I get the error:
+
+"Failed to load PDF. Try again."
+
+Please help me fix this issue and make the uploaded PDF display properly for editing.
+
+🔧 What I need you to fix:
+Ensure the uploaded PDF file is being read and loaded properly.
+
+Use FileReader.readAsArrayBuffer() to handle the PDF.
+
+Load the file into pdfjsLib.getDocument() correctly.
+
+Make sure the PDF is not rejected unless it’s truly corrupted.
+
+Fix the viewer so the first page displays for editing.
+
+Render the first page using <canvas> or an editable PDF viewer.
+
+Handle multi-page support if possible.
+
+Add error handling only when file is invalid.
+
+Show error messages like “Please upload a valid PDF file” only if file type or content is truly incorrect.
+
+Display errors in the console for debugging.
+
+Optional: Add a simple UI with canvas to show the PDF.
+
+Preview the first page using canvas.
+
+Later allow drawing, adding shapes, text, etc.
+
+🧪 Sample Code I’m Using:
+html
+Copy
+Edit
+<input type="file" id="pdfUpload" accept="application/pdf" />
+<canvas id="pdfCanvas"></canvas>
+javascript
+Copy
+Edit
+document.getElementById("pdfUpload").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  if (!file || file.type !== "application/pdf") {
+    alert("Please upload a valid PDF file.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function () {
+    const typedarray = new Uint8Array(this.result);
+
+    pdfjsLib.getDocument({ data: typedarray }).promise.then(pdf => {
+      pdf.getPage(1).then(page => {
+        const canvas = document.getElementById('pdfCanvas');
+        const context = canvas.getContext('2d');
+        const viewport = page.getViewport({ scale: 1.5 });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        page.render({ canvasContext: context, viewport: viewport });
+      });
+    }).catch(err => {
+      alert("Failed to load PDF. Try again.");
+      console.error("PDF.js error:", err);
+    });
+  };
+
+  reader.readAsArrayBuffer(file);
+});
+✅ Goal:
+Allow PDF upload and view in browser using PDF.js.
+
+Show no error unless file is actually unreadable.
+
+Make future editing tools possible (drawing, text insert, etc.).
+
