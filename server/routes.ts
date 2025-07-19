@@ -877,7 +877,7 @@ app.post('/api/convert/rotate-pdf', upload.single('file'), async (req, res) => {
     const outputFilename = `${originalName}_rotated_${rotationAngle}deg_${Date.now()}.pdf`;
     const outputPath = path.join(outputDir, outputFilename);
 
-    const pythonScript = path.join(process.cwd(), "server", "rotate_pdf_converter.py");
+    const pythonScript = path.join(process.cwd(), "server", "pdf_page_manager.py");
     const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
     
     // Create a temporary file with proper extension for Python script validation
@@ -887,7 +887,7 @@ app.post('/api/convert/rotate-pdf', upload.single('file'), async (req, res) => {
     console.log(`Rotating PDF: ${req.file.originalname} by ${rotationAngle}° (pages: ${pageNumbers || 'all'})`);
     
     const result = await new Promise<string>((resolve, reject) => {
-      const args = [pythonScript, tempInputPath, outputPath, rotationAngle.toString()];
+      const args = [pythonScript, 'rotate', tempInputPath, outputPath, rotationAngle.toString()];
       if (pageNumbers) {
         args.push(pageNumbers);
       }
@@ -992,6 +992,224 @@ app.post('/api/convert/rotate-pdf', upload.single('file'), async (req, res) => {
       res.status(500).json({ message: error.message || "Failed to get files" });
     }
   });
+
+// Remove PDF pages route
+app.post('/api/convert/remove-pages', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Validate file type
+    if (!req.file.originalname.toLowerCase().endsWith('.pdf')) {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
+    // Parse pages to remove
+    const pagesToRemove = req.body.pagesToRemove?.trim();
+    if (!pagesToRemove) {
+      return res.status(400).json({ message: "Please specify which pages to remove." });
+    }
+
+    // Setup output paths
+    const outputDir = path.join(process.cwd(), 'outputs');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const originalName = path.parse(req.file.originalname).name;
+    const outputFilename = `${originalName}_pages_removed_${Date.now()}.pdf`;
+    const outputPath = path.join(outputDir, outputFilename);
+
+    const pythonScript = path.join(process.cwd(), "server", "pdf_page_manager.py");
+    const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+    
+    // Create a temporary file with proper extension for Python script validation
+    const tempInputPath = path.join(path.dirname(req.file.path), req.file.originalname);
+    fs.copyFileSync(req.file.path, tempInputPath);
+    
+    console.log(`Removing pages from PDF: ${req.file.originalname} (pages: ${pagesToRemove})`);
+    
+    const result = await new Promise<string>((resolve, reject) => {
+      const args = [pythonScript, 'remove', tempInputPath, outputPath, pagesToRemove];
+      
+      const python = spawn(pythonPath, args, {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      python.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(stdout.trim());
+            if (result.success) {
+              resolve(result.message);
+            } else {
+              reject(new Error(result.error || "Unknown error"));
+            }
+          } catch (e) {
+            resolve("Pages removed successfully");
+          }
+        } else {
+          reject(new Error(`Page removal failed (exit code ${code}): ${stderr || stdout || "Unknown error"}`));
+        }
+      });
+
+      python.on('error', (error) => {
+        reject(new Error(`Failed to start Python process: ${error.message}`));
+      });
+    });
+
+    // Check if output file was created
+    if (!fs.existsSync(outputPath)) {
+      throw new Error("Output file was not created");
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    
+    const fileStream = fs.createReadStream(outputPath);
+    fileStream.pipe(res);
+
+    setTimeout(() => {
+      try {
+        fs.unlinkSync(req.file!.path);
+        fs.unlinkSync(tempInputPath);
+        fs.unlinkSync(outputPath);
+      } catch (err) {
+        console.error('Cleanup error:', err);
+      }
+    }, 30000);
+
+  } catch (error: any) {
+    console.error('Page removal error:', error);
+    res.status(500).json({ message: error.message || "Failed to remove pages from PDF." });
+  }
+});
+
+// Add PDF pages route
+app.post('/api/convert/add-pages', upload.fields([
+  { name: 'mainFile', maxCount: 1 },
+  { name: 'addFile', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    
+    if (!files.mainFile || !files.addFile) {
+      return res.status(400).json({ message: "Please upload both PDF files." });
+    }
+
+    const mainFile = files.mainFile[0];
+    const addFile = files.addFile[0];
+
+    // Validate file types
+    if (!mainFile.originalname.toLowerCase().endsWith('.pdf') || 
+        !addFile.originalname.toLowerCase().endsWith('.pdf')) {
+      return res.status(400).json({ message: "Please upload valid PDF files." });
+    }
+
+    // Parse insertion point
+    const insertionPoint = req.body.insertionPoint || 'end';
+
+    // Setup output paths
+    const outputDir = path.join(process.cwd(), 'outputs');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const originalName = path.parse(mainFile.originalname).name;
+    const outputFilename = `${originalName}_pages_added_${Date.now()}.pdf`;
+    const outputPath = path.join(outputDir, outputFilename);
+
+    const pythonScript = path.join(process.cwd(), "server", "pdf_page_manager.py");
+    const pythonPath = path.join(process.cwd(), ".pythonlibs", "bin", "python3");
+    
+    // Create temporary files with proper extensions
+    const tempMainPath = path.join(path.dirname(mainFile.path), mainFile.originalname);
+    const tempAddPath = path.join(path.dirname(addFile.path), addFile.originalname);
+    fs.copyFileSync(mainFile.path, tempMainPath);
+    fs.copyFileSync(addFile.path, tempAddPath);
+    
+    console.log(`Adding pages to PDF: ${mainFile.originalname} + ${addFile.originalname} (position: ${insertionPoint})`);
+    
+    const result = await new Promise<string>((resolve, reject) => {
+      const args = [pythonScript, 'add', tempMainPath, tempAddPath, outputPath, insertionPoint];
+      
+      const python = spawn(pythonPath, args, {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      python.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(stdout.trim());
+            if (result.success) {
+              resolve(result.message);
+            } else {
+              reject(new Error(result.error || "Unknown error"));
+            }
+          } catch (e) {
+            resolve("Pages added successfully");
+          }
+        } else {
+          reject(new Error(`Page addition failed (exit code ${code}): ${stderr || stdout || "Unknown error"}`));
+        }
+      });
+
+      python.on('error', (error) => {
+        reject(new Error(`Failed to start Python process: ${error.message}`));
+      });
+    });
+
+    // Check if output file was created
+    if (!fs.existsSync(outputPath)) {
+      throw new Error("Output file was not created");
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    
+    const fileStream = fs.createReadStream(outputPath);
+    fileStream.pipe(res);
+
+    setTimeout(() => {
+      try {
+        fs.unlinkSync(mainFile.path);
+        fs.unlinkSync(addFile.path);
+        fs.unlinkSync(tempMainPath);
+        fs.unlinkSync(tempAddPath);
+        fs.unlinkSync(outputPath);
+      } catch (err) {
+        console.error('Cleanup error:', err);
+      }
+    }, 30000);
+
+  } catch (error: any) {
+    console.error('Page addition error:', error);
+    res.status(500).json({ message: error.message || "Failed to add pages to PDF." });
+  }
+});
 
   const httpServer = createServer(app);
   return httpServer;

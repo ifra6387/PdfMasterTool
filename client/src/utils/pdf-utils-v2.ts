@@ -767,6 +767,59 @@ export async function rotatePDF(file: File, rotationAngle: number, pageNumbers?:
   }
 }
 
+// PDF page removal utility with server-side processing
+export async function removePDFPages(file: File, pagesToRemove: string): Promise<Blob> {
+  try {
+    if (!pagesToRemove || !pagesToRemove.trim()) {
+      throw new Error('Please specify which pages to remove.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('pagesToRemove', pagesToRemove.trim());
+
+    const response = await fetch('/api/convert/remove-pages', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      throw new Error(errorData.message || `HTTP error ${response.status}`);
+    }
+
+    return await response.blob();
+  } catch (error) {
+    console.error('PDF page removal error:', error);
+    throw new Error(error instanceof Error ? error.message : 'Failed to remove pages from PDF. Please try again.');
+  }
+}
+
+// PDF page addition utility with server-side processing
+export async function addPDFPages(mainFile: File, addFile: File, insertionPoint: string = 'end'): Promise<Blob> {
+  try {
+    const formData = new FormData();
+    formData.append('mainFile', mainFile);
+    formData.append('addFile', addFile);
+    formData.append('insertionPoint', insertionPoint);
+
+    const response = await fetch('/api/convert/add-pages', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      throw new Error(errorData.message || `HTTP error ${response.status}`);
+    }
+
+    return await response.blob();
+  } catch (error) {
+    console.error('PDF page addition error:', error);
+    throw new Error(error instanceof Error ? error.message : 'Failed to add pages to PDF. Please try again.');
+  }
+}
+
 // PDF to Excel utility - New implementation
 export async function pdfToExcel(file: File): Promise<Blob> {
   try {
