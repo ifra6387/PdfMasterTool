@@ -1,14 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { createClient } from '@supabase/supabase-js';
-import { useState } from 'react';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+import { useSupabaseAuth } from '@/hooks/use-supabase-auth';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -16,70 +8,25 @@ interface AuthGuardProps {
   redirectTo?: string;
 }
 
-interface User {
-  id: string;
-  email: string;
-  created_at: string;
-}
-
-export function AuthGuard({ children, requireAuth = true, redirectTo = "/auth-demo" }: AuthGuardProps) {
+export function AuthGuard({ children, requireAuth = true, redirectTo = "/" }: AuthGuardProps) {
   const [, setLocation] = useLocation();
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading, isConfigured } = useSupabaseAuth();
 
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    // Check current session
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            created_at: session.user.created_at || ''
-          });
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          created_at: session.user.created_at || ''
-        });
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
+    if (!isConfigured) return; // Skip auth checks if Supabase not configured
     if (loading) return;
 
     if (requireAuth && !user) {
       setLocation(redirectTo);
-    } else if (!requireAuth && user && redirectTo === "/auth-demo") {
-      // If user is logged in and trying to access auth page, redirect to dashboard
-      setLocation("/dashboard");
+    } else if (!requireAuth && user && redirectTo === "/") {
+      // If user is logged in and trying to access a non-auth page that doesn't require auth, allow it
+      return;
     }
-  }, [loading, user, requireAuth, redirectTo, setLocation]);
+  }, [loading, user, requireAuth, redirectTo, setLocation, isConfigured]);
+
+  if (!isConfigured) {
+    return <>{children}</>; // Allow access if Supabase not configured
+  }
 
   if (loading) {
     return (
@@ -93,11 +40,7 @@ export function AuthGuard({ children, requireAuth = true, redirectTo = "/auth-de
   }
 
   if (requireAuth && !user) {
-    return null; // Will redirect to auth page
-  }
-
-  if (!requireAuth && user && redirectTo === "/auth-demo") {
-    return null; // Will redirect to dashboard
+    return null; // Will redirect to home page where user can sign in
   }
 
   return <>{children}</>;

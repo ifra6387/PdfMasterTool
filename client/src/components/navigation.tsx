@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Moon, Sun, FileText, User, LogOut } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "@/hooks/use-auth";
+import { useSupabaseAuth } from "@/hooks/use-supabase-auth";
+import { AuthModal } from "./auth-modal";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +17,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export function Navigation() {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { user: supabaseUser, logout: supabaseLogout, loading: supabaseLoading } = useSupabaseAuth();
   const [location] = useLocation();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -39,16 +44,13 @@ export function Navigation() {
                 Tools
               </span>
             </Link>
-            <Link href="/auth-demo">
-              <span className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer">
-                Supabase Auth
-              </span>
-            </Link>
-            <Link href="/dashboard">
-              <span className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer">
-                Dashboard
-              </span>
-            </Link>
+            {supabaseUser && (
+              <Link href="/dashboard">
+                <span className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer">
+                  Dashboard
+                </span>
+              </Link>
+            )}
           </div>
 
           {/* User Actions */}
@@ -68,7 +70,7 @@ export function Navigation() {
             </Button>
 
             {/* Authentication */}
-            {user ? (
+            {supabaseUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2">
@@ -78,34 +80,31 @@ export function Navigation() {
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-gray-700 dark:text-gray-300">
-                      {user.name}
+                      {supabaseUser.email}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuItem onClick={supabaseLogout} className="text-red-600 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
+                    <span>Logout</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center space-x-3">
-                <Link href="/login">
-                  <Button variant="ghost" className="text-red-600 hover:text-red-700">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button className="bg-red-500 hover:bg-red-600 text-white">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
+              <Button 
+                onClick={() => setAuthModalOpen(true)}
+                className="bg-red-500 hover:bg-red-600 text-white"
+                disabled={supabaseLoading}
+              >
+                {supabaseLoading ? 'Loading...' : 'Sign In'}
+              </Button>
             )}
           </div>
         </div>
       </div>
+      
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </nav>
   );
 }

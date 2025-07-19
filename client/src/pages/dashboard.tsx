@@ -1,48 +1,17 @@
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthGuard } from '@/components/auth-guard';
 import { useLocation } from 'wouter';
 import { LogOut, User, Shield, Clock, Database } from 'lucide-react';
+import { useSupabaseAuth } from '@/hooks/use-supabase-auth';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
-
-interface User {
-  id: string;
-  email: string;
-  created_at: string;
-}
-
-export default function Dashboard() {
+function Dashboard() {
   const [, setLocation] = useLocation();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, logout } = useSupabaseAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  useEffect(() => {
-    if (!supabase) return;
-
-    // Get current user
-    const getCurrentUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          created_at: session.user.created_at || ''
-        });
-      }
-    };
-
-    getCurrentUser();
-  }, []);
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -50,22 +19,14 @@ export default function Dashboard() {
   };
 
   const handleLogout = async () => {
-    if (!supabase) return;
-
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        showMessage('error', error.message);
-      } else {
-        showMessage('success', 'Logged out successfully!');
-        // Clear user state
-        setUser(null);
-        // Redirect to auth page after a brief delay
-        setTimeout(() => {
-          setLocation('/auth-demo');
-        }, 1000);
-      }
+      await logout();
+      showMessage('success', 'Logged out successfully!');
+      // Redirect to home page after a brief delay
+      setTimeout(() => {
+        setLocation('/');
+      }, 1000);
     } catch (error) {
       showMessage('error', 'An unexpected error occurred during logout');
     } finally {
@@ -74,8 +35,7 @@ export default function Dashboard() {
   };
 
   return (
-    <AuthGuard requireAuth={true}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-4xl mx-auto p-6">
           {/* Header */}
           <div className="mb-8">
@@ -177,14 +137,14 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/auth-demo')}>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleLogout}>
               <CardHeader>
-                <CardTitle className="text-lg">Auth Demo</CardTitle>
-                <CardDescription>View authentication system</CardDescription>
+                <CardTitle className="text-lg">Logout</CardTitle>
+                <CardDescription>End your current session</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Explore the Supabase authentication system and its features.
+                  Safely logout and return to the home page.
                 </p>
               </CardContent>
             </Card>
@@ -208,11 +168,18 @@ export default function Dashboard() {
           {/* Footer */}
           <div className="mt-12 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              This dashboard is protected by Supabase authentication
+              This dashboard is protected and requires authentication
             </p>
           </div>
         </div>
       </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <AuthGuard requireAuth={true}>
+      <Dashboard />
     </AuthGuard>
   );
 }
