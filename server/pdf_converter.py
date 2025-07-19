@@ -169,23 +169,37 @@ def detect_numbered_item(text):
     return any(re.match(pattern, text_stripped) for pattern in numbered_patterns)
 
 def should_start_new_paragraph_enhanced(line_data, current_paragraph):
-    """Enhanced paragraph break detection with list and structure awareness"""
+    """Enhanced paragraph break detection matching iLovePDF structure"""
     if not current_paragraph:
         return False
     
     last_line = current_paragraph[-1]
     text = line_data['text']
+    last_text = last_line['text']
     
-    # Always break for numbered items
-    if detect_numbered_item(text):
-        return True
-    
-    # Always break for list items
+    # Always break for clear list items
     if detect_list_item(text):
         return True
     
-    # Use existing logic for other cases
-    return should_start_new_paragraph(line_data, current_paragraph)
+    # Break for job titles (clean, short professional titles)
+    if (any(title in text.lower() for title in ['ui/ux designer', 'designer', 'developer']) and
+        len(text.split()) <= 4 and not any(char.isdigit() for char in text)):
+        return True
+    
+    # Break for company/date lines
+    if (any(str(year) in text for year in range(2020, 2025)) and
+        any(word in text.lower() for word in ['solutions', 'technologies', 'present', 'remote'])):
+        return True
+    
+    # Break for major section headers
+    if any(section in text.lower() for section in ['work experience', 'education', 'skills']):
+        return True
+    
+    # Break for significant formatting changes
+    font_change = abs(line_data['font_size'] - last_line['font_size']) > 2
+    bold_change = line_data['is_bold'] != last_line['is_bold']
+    
+    return font_change or bold_change
 
 def extract_formatted_lines(chars):
     """Extract lines with formatting information from character data"""
@@ -281,50 +295,41 @@ def analyze_paragraph(paragraph_lines, text):
     }
 
 def detect_advanced_heading(text, lines):
-    """More conservative heading detection to match PDF structure better"""
-    if not text or len(text) > 150:  # Long text is unlikely to be a heading
+    """Detect headings to match iLovePDF's professional structure"""
+    if not text or len(text) > 100:
         return False
     
     # Get formatting info
     avg_font_size = sum(line['font_size'] for line in lines) / len(lines)
     is_bold = any(line['is_bold'] for line in lines)
     
-    # Major section headers (these should definitely be headings)
-    major_sections = ['work experience', 'experience', 'education', 'skills', 'projects', 'summary', 'objective']
+    # Main resume sections - these should be headings
+    major_sections = ['work experience', 'experience', 'education', 'skills', 'projects', 'summary']
     is_major_section = any(section in text.lower() for section in major_sections)
     
-    # Name and contact info (top of resume)
-    is_name_or_title = (
-        len(text.split()) <= 3 and  # Short text
-        (text.istitle() or text.isupper()) and  # Proper case or all caps
-        len(text) < 50 and  # Not too long
-        not any(word in text.lower() for word in ['with', 'and', 'the', 'for', 'in', 'at'])  # Not descriptive text
+    # Name - typically at the top, bold, larger font
+    is_name = (
+        len(text.split()) <= 3 and 
+        text.replace(' ', '').replace('.', '').isalpha() and  # Only letters and spaces/dots
+        not any(word.lower() in ['and', 'the', 'with', 'for'] for word in text.split()) and
+        (is_bold or avg_font_size > 14)
     )
     
-    # Job titles with dates (should be headings)
-    has_recent_date = any(str(year) in text for year in range(2020, 2025))
-    is_job_title = (
-        has_recent_date and 
-        any(word in text.lower() for word in ['designer', 'developer', 'manager', 'engineer', 'analyst']) and
-        len(text.split()) <= 12
+    # Job titles - but NOT with companies or dates mixed in
+    is_clean_job_title = (
+        any(title in text.lower() for title in ['ui/ux designer', 'designer', 'developer', 'engineer']) and
+        len(text.split()) <= 4 and  # Keep it short and clean
+        not any(char.isdigit() for char in text) and  # No dates mixed in
+        not any(word.lower() in ['solutions', 'technologies', 'systems'] for word in text.split())
     )
     
-    # Very strict criteria - only clear headings
-    definite_heading = (
-        is_major_section or  # Major resume sections
-        is_name_or_title or  # Name/title at top
-        is_job_title or      # Job titles with dates
-        (text.endswith(':') and len(text.split()) <= 5)  # Short text ending with colon
-    )
+    # Only these specific types should be headings
+    definite_heading = is_major_section or is_name or is_clean_job_title
     
-    # Additional check - must have some formatting distinction
-    has_formatting_distinction = (
-        is_bold or 
-        avg_font_size > 12.5 or
-        text.isupper()
-    )
+    # Must have formatting distinction 
+    has_formatting = is_bold or avg_font_size > 12.5
     
-    return definite_heading and has_formatting_distinction
+    return definite_heading and has_formatting
 
 def detect_heading(text, lines):
     """Detect if text is likely a heading based on various criteria"""
@@ -515,19 +520,19 @@ def create_numbered_item(doc, text, formatting):
             run.bold = True
 
 def create_list_item(doc, text, formatting):
-    """Create a bulleted list item"""
+    """Create bullet points that match iLovePDF's professional style"""
     # Remove bullet character if it exists
     clean_text = text.lstrip('•▪▫◦‣⁃-* ').strip()
     
     para = doc.add_paragraph(clean_text)
     para.style = 'List Bullet'
+    para.paragraph_format.left_indent = Inches(0.25)  # Professional indent
+    para.paragraph_format.space_after = Pt(3)  # Tight spacing
     
-    # Apply formatting
+    # Apply clean formatting
     for run in para.runs:
         run.font.name = 'Calibri'
         run.font.size = Pt(11)
-        if formatting.get('is_bold', False):
-            run.bold = True
 
 def configure_document_styles(doc):
     """Configure document styles for professional appearance"""
@@ -545,62 +550,82 @@ def configure_document_styles(doc):
     normal_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
 def create_formatted_heading(doc, text, level, formatting):
-    """Create a heading with proper formatting"""
-    # Determine heading level and styling
-    if level == 1 or any(word in text.lower() for word in ['experience', 'education', 'skills', 'summary']):
-        heading_level = 1
-        space_before = Pt(16)
-        space_after = Pt(8)
-    else:
-        heading_level = 2
-        space_before = Pt(10)
-        space_after = Pt(4)
+    """Create headings that match iLovePDF's clean professional style"""
     
-    para = doc.add_heading(text, level=heading_level)
-    para.paragraph_format.space_before = space_before
-    para.paragraph_format.space_after = space_after
-    
-    # Apply additional formatting based on original
-    for run in para.runs:
-        run.font.name = 'Calibri'
-        run.bold = True
+    # Name formatting (largest, centered)
+    if (len(text.split()) <= 3 and 
+        text.replace(' ', '').replace('.', '').isalpha() and
+        not any(word.lower() in ['experience', 'education', 'skills'] for word in text.split())):
+        para = doc.add_heading(text, level=1)
+        para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        para.paragraph_format.space_before = Pt(0)
+        para.paragraph_format.space_after = Pt(6)
         
-        # Adjust font size based on original
-        original_size = formatting.get('font_size', 14)
-        if original_size > 14:
-            run.font.size = Pt(16)
-        elif original_size > 12:
+        for run in para.runs:
+            run.font.name = 'Calibri'
+            run.font.size = Pt(20)
+            run.bold = True
+            
+    # Major section headings (Work Experience, Education, etc.)
+    elif any(section in text.lower() for section in ['work experience', 'experience', 'education', 'skills', 'summary']):
+        para = doc.add_heading(text, level=2)
+        para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        para.paragraph_format.space_before = Pt(18)
+        para.paragraph_format.space_after = Pt(6)
+        
+        for run in para.runs:
+            run.font.name = 'Calibri'
             run.font.size = Pt(14)
-        else:
-            run.font.size = Pt(13)
+            run.bold = True
+            
+    # Job titles
+    else:
+        para = doc.add_heading(text, level=3)
+        para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        para.paragraph_format.space_before = Pt(12)
+        para.paragraph_format.space_after = Pt(4)
+        
+        for run in para.runs:
+            run.font.name = 'Calibri'
+            run.font.size = Pt(12)
+            run.bold = True
 
 def create_formatted_paragraph(doc, text, formatting):
-    """Create a paragraph with preserved formatting"""
-    para = doc.add_paragraph()
+    """Create paragraphs that match iLovePDF's clean style"""
     
-    # Less aggressive formatting - focus on readability
-    if text.isupper() and len(text) < 50:
-        # Short all caps - likely important text
-        run = para.add_run(text)
-        run.font.name = 'Calibri'
-        run.font.size = Pt(11)
-        run.bold = True
-    elif formatting.get('is_bold', False):
-        # Actually bold in original
-        run = para.add_run(text)
-        run.font.name = 'Calibri'
-        run.font.size = Pt(11)
-        run.bold = True
+    # Check if this is contact info (should be centered under name)
+    if (any(indicator in text for indicator in ['@gmail.', 'linkedin.', 'behance.', 'http']) or
+        any(char.isdigit() for char in text) and len(text) < 100):
+        para = doc.add_paragraph(text)
+        para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        para.paragraph_format.space_after = Pt(4)
+        
+        for run in para.runs:
+            run.font.name = 'Calibri'
+            run.font.size = Pt(10)
+    
+    # Company and date info (should be on separate line, right-aligned)
+    elif (any(str(year) in text for year in range(2020, 2025)) and 
+          any(word in text.lower() for word in ['solutions', 'technologies', 'ltd', 'inc', 'present', 'remote'])):
+        para = doc.add_paragraph(text)
+        para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        para.paragraph_format.space_after = Pt(6)
+        
+        for run in para.runs:
+            run.font.name = 'Calibri'
+            run.font.size = Pt(10)
+            run.italic = True
+    
+    # Regular paragraph text
     else:
-        # Regular text - keep it simple for better readability
-        run = para.add_run(text)
-        run.font.name = 'Calibri'
-        run.font.size = Pt(11)
-    
-    # Better paragraph spacing for readability
-    para.paragraph_format.space_after = Pt(6)
-    para.paragraph_format.line_spacing = 1.15
-    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        para = doc.add_paragraph(text)
+        para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        para.paragraph_format.space_after = Pt(6)
+        para.paragraph_format.line_spacing = 1.15
+        
+        for run in para.runs:
+            run.font.name = 'Calibri'
+            run.font.size = Pt(11)
 
 
 
