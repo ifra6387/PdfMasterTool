@@ -9,20 +9,20 @@ import { SupabaseAuthProvider } from "./hooks/use-supabase-auth";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Tools from "@/pages/tools";
-
 import Processing from "@/pages/processing";
 import Download from "@/pages/download";
 import LoginStandalone from "@/pages/login-standalone";
 import SignUpStandalone from "@/pages/signup-standalone";
 import Dashboard from "@/pages/dashboard";
+import ToolPlaceholder from "@/pages/tool-placeholder";
 import { AuthGuard } from "@/components/auth-guard";
-import { Redirect } from "@/components/redirect";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-
+      <Route path="/home" component={Home} />
+      
       <Route path="/tools" component={() => (
         <AuthGuard requireAuth={true}>
           <Tools />
@@ -33,9 +33,15 @@ function Router() {
       <Route path="/download/:token" component={Download} />
       
       <Route path="/signin" component={LoginStandalone} />
-      <Route path="/login" component={() => <Redirect to="/signin" />} />
+      <Route path="/login" component={LoginStandalone} />
       <Route path="/signup" component={SignUpStandalone} />
       <Route path="/dashboard" component={Dashboard} />
+      
+      {/* Tool placeholder routes */}
+      <Route path="/tool/:toolName" component={ToolPlaceholder} />
+      <Route path="/tools/:toolName" component={ToolPlaceholder} />
+      
+      {/* Catch all other routes */}
       <Route component={NotFound} />
     </Switch>
   );
