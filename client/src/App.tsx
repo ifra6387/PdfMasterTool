@@ -20,14 +20,14 @@ import { AuthGuard } from "@/components/auth-guard";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      {/* Tools page as default landing route */}
+      <Route path="/" component={Tools} />
+      
+      {/* Old home page moved to /home for backwards compatibility */}
       <Route path="/home" component={Home} />
       
-      <Route path="/tools" component={() => (
-        <AuthGuard requireAuth={true}>
-          <Tools />
-        </AuthGuard>
-      )} />
+      {/* Tools also accessible at /tools */}
+      <Route path="/tools" component={Tools} />
 
       <Route path="/processing/:fileId" component={Processing} />
       <Route path="/download/:token" component={Download} />
@@ -35,6 +35,8 @@ function Router() {
       <Route path="/signin" component={LoginStandalone} />
       <Route path="/login" component={LoginStandalone} />
       <Route path="/signup" component={SignUpStandalone} />
+      
+      {/* Dashboard still accessible but not default */}
       <Route path="/dashboard" component={Dashboard} />
       
       {/* Tool placeholder routes */}

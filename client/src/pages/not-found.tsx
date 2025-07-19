@@ -42,7 +42,7 @@ export default function NotFound() {
 
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Available pages: <Link href="/" className="text-blue-600 hover:underline">Home</Link>, 
+              Available pages: <Link href="/" className="text-blue-600 hover:underline">Tools Home</Link>, 
               <Link href="/signin" className="text-blue-600 hover:underline"> Sign In</Link>, 
               <Link href="/dashboard" className="text-blue-600 hover:underline"> Dashboard</Link>
             </p>

@@ -54,7 +54,7 @@ export default function SignUpStandalone() {
       } else if (data.user) {
         setSuccess('Account created successfully! Redirecting to your tools...');
         setTimeout(() => {
-          setLocation('/tools');
+          setLocation('/');
         }, 2000);
       }
     } catch (err) {

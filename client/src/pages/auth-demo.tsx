@@ -93,13 +93,13 @@ function AuthDemoContent() {
       if (error) {
         showMessage('error', error.message);
       } else if (data.user) {
-        showMessage('success', 'Account created successfully! Redirecting to dashboard...');
+        showMessage('success', 'Account created successfully! Redirecting to tools...');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-        // Redirect to dashboard after successful signup
+        // Redirect to tools home page after successful signup
         setTimeout(() => {
-          setLocation('/dashboard');
+          setLocation('/');
         }, 1500);
       }
     } catch (error) {
@@ -126,12 +126,12 @@ function AuthDemoContent() {
       if (error) {
         showMessage('error', error.message);
       } else if (data.user) {
-        showMessage('success', 'Logged in successfully! Redirecting to dashboard...');
+        showMessage('success', 'Logged in successfully! Redirecting to tools...');
         setEmail('');
         setPassword('');
-        // Redirect to dashboard after successful login
+        // Redirect to tools home page after successful login
         setTimeout(() => {
-          setLocation('/dashboard');
+          setLocation('/');
         }, 1500);
       }
     } catch (error) {
