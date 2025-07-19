@@ -1,0 +1,139 @@
+🎯 Objective
+Build a full-stack, professional-grade PDF utility app using Node.js and Supabase on Replit, with:
+
+📄 A stylish, responsive Landing Page
+
+🔐 User Authentication (Sign In / Sign Up)
+
+📂 PDF Dashboard with tools like iLovePDF
+
+🌗 Light and Dark Mode (theme saved in localStorage)
+
+💾 Upload-only from PC (max file size 20MB)
+
+🕐 Auto-delete uploaded files after 1 hour
+
+📦 100% open-source – no external API keys
+
+🎨 UI built with Tailwind CSS using custom professional fonts and colors
+
+🎨 Design System
+✅ Fonts
+
+Headings: Poppins
+
+Body Text: Montserrat
+
+✅ Color Palette (No Red)
+
+Royal Blue #3B82F6 (Primary Action)
+
+Mint Green #10B981 (Success)
+
+Gunmetal #1F2937 (Dark Background/Text)
+
+Ghost White #F9FAFB (Light Background)
+
+Cool Gray #9CA3AF (Neutral text)
+
+📁 Pages to Build
+1. Landing Page
+Hero section with intro
+
+Call-to-action buttons (Login / Signup)
+
+Footer with basic links
+
+2. Login / Signup Page
+Supabase email/password Auth
+
+Save session in localStorage
+
+Redirect to /dashboard on success
+
+3. Dashboard (Post-login)
+Grid-style layout like iLovePDF
+
+Each box → opens a PDF tool (e.g., Merge, Split)
+
+Theme toggle (Light/Dark mode) with persistence
+
+Logout button clears session
+
+⚙️ Core PDF Features
+Use open-source libraries only (no API keys):
+
+pdf-lib, pdfkit, sharp, tesseract.js, puppeteer, etc.
+
+Tools to Include:
+
+✅ Merge PDFs
+
+✅ Split PDFs
+
+✅ Compress PDF
+
+✅ PDF ↔ Word
+
+✅ PDF ↔ Excel
+
+✅ PDF ↔ JPG
+
+✅ PDF ↔ HTML
+
+✅ OCR/Scan to PDF (with tesseract.js)
+
+✅ Add/Remove/Rotate Pages
+
+✅ Watermark & Page Numbers
+
+✅ Redact / Unlock / Password-Protect PDF
+
+🔐 Authentication
+Powered by Supabase
+
+Only authenticated users access the dashboard/tools
+
+Logout clears session
+
+All routes protected via session checks
+
+📥 File Upload Rules
+Only from local PC
+
+Max file size: 20MB
+
+If exceeded: show clear error message
+
+Use multer or express-fileupload
+
+Store temp files in /tmp or memory
+
+⬇️ File Download Handling
+After processing, show Download button
+
+Clicking it should:
+
+Trigger Save As… dialog on user’s PC
+
+Use <a download> with Blob URL or file link
+
+⏱ Auto File Deletion
+Use node-cron or setTimeout with timestamps
+
+Delete uploaded/processed files from server after 1 hour
+
+✅ Tools to Use
+Backend: Node.js + Express
+
+Frontend: Vanilla JS or React (if preferred)
+
+Styling: TailwindCSS with custom theme
+
+Auth: Supabase (Replit’s built-in)
+
+OCR: tesseract.js for scan-to-text
+
+File Handling: pdf-lib, pdfkit, sharp, etc.
+
+Temp File Cleanup: node-cron

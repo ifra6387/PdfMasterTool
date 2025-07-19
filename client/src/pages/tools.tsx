@@ -21,7 +21,13 @@ import {
   ScanLine,
   Download,
   Upload,
-  Edit3
+  Edit3,
+  FileSpreadsheet,
+  Globe,
+  Scan,
+  Droplets,
+  Hash,
+  Eye
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -34,66 +40,94 @@ import {
 const pdfTools = [
   {
     id: 'merge',
-    name: 'Merge PDF',
+    name: 'Merge PDFs',
     description: 'Combine multiple PDF files into one',
     icon: Merge,
-    color: 'text-blue-600'
+    color: 'text-primary'
   },
   {
     id: 'split',
     name: 'Split PDF',
     description: 'Extract pages from your PDF',
     icon: Split,
-    color: 'text-green-600'
+    color: 'text-accent'
   },
   {
     id: 'compress',
     name: 'Compress PDF',
     description: 'Reduce PDF file size',
     icon: Archive,
-    color: 'text-orange-600'
+    color: 'text-primary'
   },
   {
-    id: 'convert',
-    name: 'PDF to JPG',
-    description: 'Convert PDF pages to images',
+    id: 'pdf-to-word',
+    name: 'PDF ↔ Word',
+    description: 'Convert between PDF and Word documents',
+    icon: FileText,
+    color: 'text-accent'
+  },
+  {
+    id: 'pdf-to-excel',
+    name: 'PDF ↔ Excel',
+    description: 'Convert between PDF and Excel files',
+    icon: FileSpreadsheet,
+    color: 'text-primary'
+  },
+  {
+    id: 'pdf-to-jpg',
+    name: 'PDF ↔ JPG',
+    description: 'Convert PDF pages to images or vice versa',
     icon: FileImage,
-    color: 'text-purple-600'
+    color: 'text-accent'
+  },
+  {
+    id: 'pdf-to-html',
+    name: 'PDF ↔ HTML',
+    description: 'Convert between PDF and HTML format',
+    icon: Globe,
+    color: 'text-primary'
+  },
+  {
+    id: 'ocr-scan',
+    name: 'OCR/Scan to PDF',
+    description: 'Convert scanned images to searchable PDF',
+    icon: Scan,
+    color: 'text-accent'
   },
   {
     id: 'rotate',
-    name: 'Rotate PDF',
-    description: 'Rotate PDF pages',
+    name: 'Add/Remove/Rotate Pages',
+    description: 'Manage PDF pages - add, remove, or rotate',
     icon: RotateCw,
-    color: 'text-indigo-600'
+    color: 'text-primary'
+  },
+  {
+    id: 'watermark',
+    name: 'Watermark & Page Numbers',
+    description: 'Add watermarks and page numbers',
+    icon: Droplets,
+    color: 'text-accent'
   },
   {
     id: 'protect',
-    name: 'Protect PDF',
-    description: 'Add password to your PDF',
+    name: 'Password-Protect PDF',
+    description: 'Add password protection to your PDF',
     icon: Lock,
-    color: 'text-red-600'
+    color: 'text-primary'
   },
   {
     id: 'unlock',
     name: 'Unlock PDF',
     description: 'Remove password from PDF',
     icon: Unlock,
-    color: 'text-yellow-600'
+    color: 'text-accent'
   },
   {
-    id: 'sign',
-    name: 'Sign PDF',
-    description: 'Add signature to your PDF',
-    icon: Edit3,
-    color: 'text-teal-600'
-  },
-  {
-    id: 'watermark',
-    name: 'Watermark PDF',
-    description: 'Add watermark to your PDF',
-    icon: ScanLine,
-    color: 'text-pink-600'
+    id: 'redact',
+    name: 'Redact PDF',
+    description: 'Remove sensitive information permanently',
+    icon: Eye,
+    color: 'text-primary'
   }
 ];
 
@@ -121,7 +155,7 @@ export default function Tools() {
               <FileText className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 dark:from-white dark:to-blue-100 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold font-heading bg-gradient-to-r from-slate-900 to-blue-900 dark:from-white dark:to-blue-100 bg-clip-text text-transparent">
                 I Love Making PDF
               </h1>
               <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -169,11 +203,11 @@ export default function Tools() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold font-heading bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-4">
             Choose Your Tool
           </h2>
-          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Select from our comprehensive suite of PDF tools to get started
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Select from our comprehensive suite of PDF tools to get started. Max file size: 20MB
           </p>
         </div>
 
@@ -194,7 +228,7 @@ export default function Tools() {
         </div>
 
         {/* Tools Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {pdfTools.map((tool) => {
             const Icon = tool.icon;
             return (
@@ -210,10 +244,10 @@ export default function Tools() {
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+                    <h3 className="text-lg font-semibold font-heading text-slate-900 dark:text-white mb-1">
                       {tool.name}
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                    <p className="text-sm text-muted-foreground">
                       {tool.description}
                     </p>
                   </div>

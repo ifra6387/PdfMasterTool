@@ -1,0 +1,60 @@
+Create a full-stack professional PDF Tools Web App (iLovePDF clone) with the following:
+
+💡 Objective:
+- Build an app with a Landing Page, Authentication, Dashboard, and PDF utilities
+- Use only open-source PDF tools (no external API keys)
+- Backend: Node.js + Express
+- Frontend: Tailwind CSS (with Poppins & Montserrat fonts)
+- Auth: Supabase (Replit's built-in)
+- Add Light/Dark mode with theme persistence (via localStorage)
+- Auto delete all uploaded/processed files after 1 hour
+- Allow uploads only from PC and limit file size to 20MB
+
+📁 Pages:
+1. **Landing Page** – Hero section, Login/Signup buttons, footer
+2. **Login/Signup Page** – Supabase auth (email/password), redirect to dashboard after login
+3. **Dashboard Page** – Grid layout like iLovePDF with tool links, logout button, light/dark toggle
+
+⚙️ PDF Tool Features:
+- Merge PDFs
+- Split PDFs
+- Compress PDFs
+- Word ↔ PDF
+- Excel ↔ PDF
+- JPG ↔ PDF
+- Rotate / Crop / Reorder pages
+- Redact, Unlock, Password-Protect
+- Add watermark / page numbers
+- HTML → PDF
+- OCR via camera or upload using `tesseract.js`
+
+📥 File Upload Rules:
+- Upload from PC only
+- Max file size: 20MB (show clear error if exceeded)
+- Use `multer` or `express-fileupload`
+- Allow only tool-relevant file types
+
+⬇️ File Download:
+- After processing, show download button
+- Ensure files save properly to user’s PC using `<a download>` behavior
+
+🎨 Styling:
+- Use **Tailwind CSS**
+- Fonts: `Poppins` for headings, `Montserrat` for body
+- Color Palette (no red): 
+  - Primary: Royal Blue `#3B82F6`
+  - Success: Mint Green `#10B981`
+  - Background: Ghost White `#F9FAFB`, Gunmetal `#1F2937`
+  - Text: Cool Gray `#9CA3AF`
+
+🧹 Auto Delete Feature:
+- Delete any uploaded/processed file after 1 hour using `node-cron` or timestamp cleanup logic
+
+🛡️ Security:
+- Only logged-in users can access PDF tools
+- Logout clears session
+
+📦 Tech Stack:
+- Node.js, Express, TailwindCSS
+- Supabase Auth
+- `pdf-lib`, `pdfkit`, `puppeteer`, `sharp`, `tesseract.js`

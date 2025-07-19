@@ -1,8 +1,8 @@
-# I Love Making PDF - PDF Utility Web App
+# I Love Making PDF - Professional PDF Utility Web App
 
 ## Overview
 
-This is a full-featured PDF utility web application built with a modern React frontend and Express.js backend. The application replicates the functionality of iLovePDF.com, offering comprehensive PDF manipulation tools including merge, split, compress, convert, edit, and secure operations. The system features user authentication, automatic file cleanup, and a responsive dark/light mode interface.
+This is a professional-grade, full-stack PDF utility web application built with modern React frontend and Express.js backend. Following the comprehensive specification requirements, it offers all major PDF manipulation tools including merge, split, compress, format conversion (Word/Excel/JPG/HTML), OCR scanning, page management, watermarking, and security features. The system features Supabase authentication, automatic file cleanup after 1 hour, responsive dark/light mode interface, and professional design using Poppins/Montserrat typography with Royal Blue/Mint Green color scheme.
 
 ## User Preferences
 
@@ -52,14 +52,14 @@ Located in `shared/schema.ts`, defines three main tables:
 - **Security**: Download tokens for processed files, user-scoped access
 
 ### PDF Processing Engine
-Modular PDF processing service supporting:
-- Merge multiple PDFs
-- Split PDF pages
-- Compress file size
-- Convert between formats (PDF ↔ Word, PowerPoint, Excel, JPG)
-- Rotate pages
-- Password protection
-- Additional editing tools
+Comprehensive PDF processing service supporting all professional-grade features:
+- **Core Operations**: Merge multiple PDFs, Split pages, Compress file size
+- **Format Conversion**: PDF ↔ Word, PDF ↔ Excel, PDF ↔ JPG, PDF ↔ HTML
+- **Advanced Features**: OCR/Scan to PDF using tesseract.js, Add/Remove/Rotate Pages
+- **Professional Tools**: Watermark & Page Numbers, Password Protection, Unlock PDFs, Redact sensitive information
+- **File Limits**: 20MB max upload size with clear error handling
+- **Auto-cleanup**: Files deleted after 1 hour using node-cron
+- **100% Open Source**: No external API keys required
 
 ## Data Flow
 
@@ -81,19 +81,20 @@ Modular PDF processing service supporting:
 
 ### Frontend Dependencies
 - **UI Components**: Radix UI primitives (@radix-ui/*)
-- **Styling**: TailwindCSS with PostCSS
+- **Styling**: TailwindCSS with custom professional color scheme (Royal Blue #3B82F6, Mint Green #10B981, Gunmetal #1F2937)
+- **Typography**: Poppins (headings), Montserrat (body text)
 - **State Management**: TanStack React Query
 - **Form Handling**: React Hook Form, Zod validation
-- **Routing**: Wouter
+- **Routing**: Wouter with protected routes
 - **Icons**: Lucide React
 
 ### Backend Dependencies
 - **Web Framework**: Express.js
 - **Database**: Drizzle ORM with PostgreSQL driver (@neondatabase/serverless)
-- **Authentication**: jsonwebtoken, bcrypt
-- **File Processing**: pdf-lib, sharp
-- **File Upload**: multer
-- **Scheduling**: node-cron
+- **Authentication**: Supabase Auth (frontend-only)
+- **File Processing**: pdf-lib (PDF manipulation), sharp (image processing), tesseract.js (OCR), puppeteer (HTML conversion)
+- **File Upload**: multer with 20MB limit
+- **Scheduling**: node-cron for automatic file cleanup
 - **Validation**: Zod with drizzle-zod integration
 
 ### Database Provider
