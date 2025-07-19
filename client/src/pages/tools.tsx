@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useSupabaseAuth } from "@/hooks/use-supabase-auth";
+import { signOut, getCurrentUser, type AuthUser } from '@/lib/supabase-auth';
 import { useLocation } from 'wouter';
 import { 
   FileText, 
@@ -212,35 +212,68 @@ const toolCategories = [
 ];
 
 export default function Tools() {
-  const { user, logout } = useSupabaseAuth();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const [, setLocation] = useLocation();
   const { theme, toggleTheme } = useTheme();
+  
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+        
+        if (!currentUser) {
+          setLocation('/signin');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setLocation('/signin');
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    checkAuth();
+  }, [setLocation]);
 
   const handleSignOut = async () => {
     try {
-      // Call Supabase logout
-      await logout();
-      
-      // Call backend logout endpoint
-      try {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-      } catch (backendError) {
-        console.warn('Backend logout failed:', backendError);
-      }
-      
-      // Redirect to landing page after successful logout
+      console.log('Signing out...');
+      await signOut();
+      setUser(null);
       setLocation('/');
     } catch (error) {
       console.error('Logout error:', error);
-      // Force redirect even if logout fails
       setLocation('/');
     }
   };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+            Please sign in to access PDF tools
+          </h1>
+          <Button onClick={() => setLocation('/signin')}>
+            Go to Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleToolClick = (toolId: string) => {
     setLocation(`/tool/${toolId}`);
