@@ -52,43 +52,49 @@ def extract_text_with_pdfplumber(pdf_path):
         return None
 
 def classify_resume_line(line, is_first_line=False):
-    """Classify a line as name, section header, job title, company info, or regular text"""
+    """Classify resume content to match iLovePDF structure exactly"""
     
-    # Name (usually first substantial line, short, proper nouns)
-    if (is_first_line or 
-        (len(line.split()) <= 3 and 
-         line.replace(' ', '').replace('.', '').isalpha() and
-         line.istitle() and
-         not any(word.lower() in ['experience', 'education', 'skills', 'summary'] for word in line.split()))):
+    # Name - first line or short title-case text without common words
+    if (is_first_line and len(line.split()) <= 4) or (
+        len(line.split()) <= 3 and 
+        line.replace(' ', '').replace('.', '').isalpha() and
+        line.istitle() and
+        not any(word.lower() in ['experience', 'education', 'skills', 'summary', 'creative', 'user'] for word in line.split())
+    ):
         return {'type': 'name'}
     
-    # Contact info (emails, urls, phone numbers)
-    if (any(indicator in line.lower() for indicator in ['@', 'http', 'linkedin', 'behance']) or
-        any(char.isdigit() for char in line) and len(line.split()) <= 8):
+    # Contact info - emails, links, phone numbers
+    if (any(indicator in line.lower() for indicator in ['@gmail', 'http', 'linkedin', 'behance', 'topcard']) or
+        any(char.isdigit() for char in line) and len(line.split()) <= 10 and 
+        not any(year in line for year in ['2020', '2021', '2022', '2023', '2024', '2025'])):
         return {'type': 'contact'}
     
-    # Major section headers
-    major_sections = ['work experience', 'experience', 'education', 'skills', 'projects', 'summary', 'objective']
-    if any(section in line.lower() for section in major_sections):
+    # Major resume section headers
+    section_keywords = ['work experience', 'experience', 'education', 'skills', 'projects', 'summary']
+    if any(section in line.lower() for section in section_keywords):
         return {'type': 'section_header'}
     
-    # Job titles (Designer, Developer, etc. but clean - no company mixed in)
-    if (any(title in line.lower() for title in ['designer', 'developer', 'engineer', 'manager', 'analyst']) and
+    # Job title with date info (iLovePDF format: "UI/UX Designer                    Feb 2023 - Present")
+    if (any(title in line.lower() for title in ['designer', 'developer', 'engineer', 'manager']) and
+        any(str(year) in line for year in range(2015, 2025))):
+        return {'type': 'job_title_with_date'}
+    
+    # Clean job titles without dates
+    if (any(title in line.lower() for title in ['ui/ux designer', 'designer', 'developer', 'engineer']) and
         len(line.split()) <= 4 and
-        not any(word.lower() in ['solutions', 'technologies', 'systems', 'inc', 'ltd'] for word in line.split()) and
         not any(char.isdigit() for char in line)):
         return {'type': 'job_title'}
     
-    # Company/date lines (contain years and company indicators)
-    if (any(str(year) in line for year in range(2015, 2025)) and
-        any(indicator in line.lower() for indicator in ['solutions', 'technologies', 'present', 'remote', 'bangladesh', 'lahore'])):
-        return {'type': 'company_date'}
+    # Company info lines
+    if (any(indicator in line.lower() for indicator in ['solutions', 'technologies', 'remote', 'bangladesh', 'lahore']) and
+        not any(title in line.lower() for title in ['designer', 'developer'])):
+        return {'type': 'company_info'}
     
     # List items
     if line.lstrip().startswith(('•', '-', '*', '▪', '◦')):
         return {'type': 'list_item'}
     
-    # Everything else is regular paragraph text
+    # Everything else is paragraph text
     return {'type': 'paragraph'}
 
 def merge_related_content(content_list):
@@ -493,11 +499,11 @@ def extract_text_with_pymupdf(pdf_path):
         return None
 
 def create_word_document(structured_content, output_path):
-    """Create Word document matching iLovePDF's exact structure"""
+    """Create Word document matching iLovePDF's exact visual structure"""
     try:
         doc = Document()
         
-        # Set margins for professional resume
+        # Professional resume margins
         section = doc.sections[0]
         section.page_height = Inches(11)
         section.page_width = Inches(8.5)
@@ -506,10 +512,9 @@ def create_word_document(structured_content, output_path):
         section.top_margin = Inches(0.8)
         section.bottom_margin = Inches(0.8)
         
-        # Configure document styles
         configure_document_styles(doc)
         
-        # Process content with proper iLovePDF-style formatting
+        # Process content to match iLovePDF exactly
         for item in structured_content:
             text = item['text'].strip()
             if not text or len(text) < 3:
@@ -518,24 +523,25 @@ def create_word_document(structured_content, output_path):
             content_type = item['type']
             
             if content_type == 'name':
-                create_resume_name(doc, text)
+                create_ilovepdf_name(doc, text)
             elif content_type == 'contact':
-                create_resume_contact(doc, text)
+                create_ilovepdf_contact(doc, text)
             elif content_type == 'section_header':
-                create_resume_section(doc, text)
+                create_ilovepdf_section_header(doc, text)
+            elif content_type == 'job_title_with_date':
+                create_ilovepdf_job_with_date(doc, text)
             elif content_type == 'job_title':
-                create_resume_job_title(doc, text)
-            elif content_type == 'company_date':
-                create_resume_company_date(doc, text)
+                create_ilovepdf_job_title(doc, text)
+            elif content_type == 'company_info':
+                create_ilovepdf_company_info(doc, text)
             elif content_type == 'list_item':
-                create_resume_bullet(doc, text)
+                create_ilovepdf_bullet(doc, text)
             elif content_type == 'table':
                 if 'data' in item:
                     create_word_table(doc, item['data'])
             else:  # paragraph
-                create_resume_paragraph(doc, text)
+                create_ilovepdf_paragraph(doc, text)
         
-        # Ensure document has content
         if len(doc.paragraphs) == 0:
             doc.add_paragraph("No content could be extracted from the PDF.")
         
@@ -547,13 +553,122 @@ def create_word_document(structured_content, output_path):
             t = item['type']
             types_count[t] = types_count.get(t, 0) + 1
         
-        print(f"Created resume with: {types_count}", file=sys.stderr)
+        print(f"iLovePDF-style resume created: {types_count}", file=sys.stderr)
         return True
         
     except Exception as e:
         print(f"Word document creation failed: {e}", file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
         return False
+
+def create_ilovepdf_name(doc, text):
+    """Name - large, centered, bold like iLovePDF"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(18)
+    run.bold = True
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.space_after = Pt(4)
+
+def create_ilovepdf_contact(doc, text):
+    """Contact info - centered, smaller font"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(9)
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.space_after = Pt(2)
+
+def create_ilovepdf_section_header(doc, text):
+    """Section headers - bold, left-aligned with space"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(14)
+    run.bold = True
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    para.paragraph_format.space_before = Pt(16)
+    para.paragraph_format.space_after = Pt(8)
+
+def create_ilovepdf_job_with_date(doc, text):
+    """Job title with date - create table for proper alignment like iLovePDF"""
+    import re
+    
+    # Extract job title and date portions
+    date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*\d{4}.*?Present|(\d{4}\s*-\s*\d{4})'
+    date_match = re.search(date_pattern, text)
+    
+    if date_match:
+        date_part = date_match.group(0)
+        job_title = text.replace(date_part, '').strip()
+        
+        # Create single-row table for alignment
+        table = doc.add_table(rows=1, cols=2)
+        table.style = 'Table Grid'
+        table.rows[0].cells[0].text = job_title
+        table.rows[0].cells[1].text = date_part
+        
+        # Format job title (left cell)
+        left_cell = table.rows[0].cells[0]
+        for paragraph in left_cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.name = 'Calibri'
+                run.font.size = Pt(12)
+                run.bold = True
+        
+        # Format date (right cell)
+        right_cell = table.rows[0].cells[1]
+        right_cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        for paragraph in right_cell.paragraphs:
+            for run in paragraph.runs:
+                run.font.name = 'Calibri'
+                run.font.size = Pt(10)
+    else:
+        # Fallback to regular job title
+        create_ilovepdf_job_title(doc, text)
+
+def create_ilovepdf_job_title(doc, text):
+    """Job title - bold, left-aligned"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(12)
+    run.bold = True
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    para.paragraph_format.space_before = Pt(6)
+    para.paragraph_format.space_after = Pt(2)
+
+def create_ilovepdf_company_info(doc, text):
+    """Company info - italic, smaller font"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(10)
+    run.italic = True
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    para.paragraph_format.space_after = Pt(4)
+
+def create_ilovepdf_paragraph(doc, text):
+    """Regular paragraph - justified"""
+    para = doc.add_paragraph()
+    run = para.add_run(text)
+    run.font.name = 'Calibri'
+    run.font.size = Pt(11)
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    para.paragraph_format.space_after = Pt(6)
+    para.paragraph_format.line_spacing = 1.15
+
+def create_ilovepdf_bullet(doc, text):
+    """Bullet points - proper indentation"""
+    clean_text = text.lstrip('•▪▫◦‣⁃-* ').strip()
+    para = doc.add_paragraph(clean_text, style='List Bullet')
+    para.paragraph_format.left_indent = Inches(0.25)
+    para.paragraph_format.space_after = Pt(3)
+    
+    for run in para.runs:
+        run.font.name = 'Calibri'
+        run.font.size = Pt(11)
 
 def create_resume_name(doc, text):
     """Create name heading - large, centered, bold"""
