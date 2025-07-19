@@ -17,6 +17,17 @@ import SignUpStandalone from "@/pages/signup-standalone";
 import ToolPlaceholder from "@/pages/tool-placeholder";
 import { AuthGuard } from "@/components/auth-guard";
 
+// Import actual tool components
+import MergePDF from "@/pages/tools/merge";
+import SplitPDF from "@/pages/tools/split";
+import CompressPDF from "@/pages/tools/compress";
+import PDFToWord from "@/pages/tools/pdf-to-word";
+import WordToPDF from "@/pages/tools/word-to-pdf";
+import PDFToJPG from "@/pages/tools/pdf-to-jpg";
+import JPGToPDF from "@/pages/tools/jpg-to-pdf";
+import ProtectPDF from "@/pages/tools/protect-pdf";
+import UnlockPDF from "@/pages/tools/unlock-pdf";
+
 function Router() {
   return (
     <Switch>
@@ -45,7 +56,29 @@ function Router() {
         return null;
       }} />
       
-      {/* Tool placeholder routes */}
+      {/* Actual tool routes */}
+      <Route path="/tool/merge" component={MergePDF} />
+      <Route path="/tool/split" component={SplitPDF} />
+      <Route path="/tool/compress" component={CompressPDF} />
+      <Route path="/tool/pdf-to-word" component={PDFToWord} />
+      <Route path="/tool/word-to-pdf" component={WordToPDF} />
+      <Route path="/tool/pdf-to-jpg" component={PDFToJPG} />
+      <Route path="/tool/jpg-to-pdf" component={JPGToPDF} />
+      <Route path="/tool/protect" component={ProtectPDF} />
+      <Route path="/tool/unlock" component={UnlockPDF} />
+      
+      {/* Alternative routes with /tools/ prefix */}
+      <Route path="/tools/merge" component={MergePDF} />
+      <Route path="/tools/split" component={SplitPDF} />
+      <Route path="/tools/compress" component={CompressPDF} />
+      <Route path="/tools/pdf-to-word" component={PDFToWord} />
+      <Route path="/tools/word-to-pdf" component={WordToPDF} />
+      <Route path="/tools/pdf-to-jpg" component={PDFToJPG} />
+      <Route path="/tools/jpg-to-pdf" component={JPGToPDF} />
+      <Route path="/tools/protect" component={ProtectPDF} />
+      <Route path="/tools/unlock" component={UnlockPDF} />
+      
+      {/* Fallback for other tools */}
       <Route path="/tool/:toolName" component={ToolPlaceholder} />
       <Route path="/tools/:toolName" component={ToolPlaceholder} />
       
