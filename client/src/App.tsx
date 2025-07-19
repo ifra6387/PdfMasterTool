@@ -12,7 +12,8 @@ import Tools from "@/pages/tools";
 import Tool from "@/pages/tool";
 import Processing from "@/pages/processing";
 import Download from "@/pages/download";
-
+import LoginStandalone from "@/pages/login-standalone";
+import SignUpStandalone from "@/pages/signup-standalone";
 import Dashboard from "@/pages/dashboard";
 import { AuthGuard } from "@/components/auth-guard";
 
@@ -33,7 +34,9 @@ function Router() {
       )} />
       <Route path="/processing/:fileId" component={Processing} />
       <Route path="/download/:token" component={Download} />
-
+      
+      <Route path="/signin" component={LoginStandalone} />
+      <Route path="/signup" component={SignUpStandalone} />
       <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>

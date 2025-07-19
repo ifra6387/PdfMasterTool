@@ -89,15 +89,15 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       });
 
       if (error) {
-        showMessage('error', error.message);
-      } else if (data.user) {
+        showMessage('error', error.message || 'Invalid email or password');
+      } else if (data.user && data.session) {
         showMessage('success', 'Logged in successfully! Redirecting...');
         setEmail('');
         setPassword('');
         setTimeout(() => {
           onOpenChange(false);
           setLocation('/tools');
-        }, 1500);
+        }, 1000);
       }
     } catch (error) {
       showMessage('error', 'An unexpected error occurred');

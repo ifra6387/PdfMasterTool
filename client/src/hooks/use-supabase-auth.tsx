@@ -62,12 +62,22 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        setUser({
+        const userData = {
           id: session.user.id,
           email: session.user.email || '',
           created_at: session.user.created_at || ''
-        });
+        };
+        
+        // Save session to localStorage
+        localStorage.setItem('supabase_session', JSON.stringify({
+          user: userData,
+          session: session,
+          timestamp: Date.now()
+        }));
+        
+        setUser(userData);
       } else {
+        localStorage.removeItem('supabase_session');
         setUser(null);
       }
       setLoading(false);
@@ -81,6 +91,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     
     try {
       await supabase.auth.signOut();
+      localStorage.removeItem('supabase_session');
       setUser(null);
     } catch (error) {
       console.error('Error during logout:', error);

@@ -13,7 +13,27 @@ export function AuthGuard({ children, requireAuth = true, redirectTo = "/" }: Au
   const { user, loading, isConfigured } = useSupabaseAuth();
 
   useEffect(() => {
-    if (!isConfigured) return; // Skip auth checks if Supabase not configured
+    if (!isConfigured) {
+      // Check localStorage for session if Supabase not configured
+      const savedSession = localStorage.getItem('supabase_session');
+      if (savedSession && requireAuth) {
+        try {
+          const session = JSON.parse(savedSession);
+          // Check if session is not expired (24 hours)
+          if (Date.now() - session.timestamp > 24 * 60 * 60 * 1000) {
+            localStorage.removeItem('supabase_session');
+            setLocation(redirectTo);
+          }
+        } catch {
+          localStorage.removeItem('supabase_session');
+          setLocation(redirectTo);
+        }
+      } else if (!savedSession && requireAuth) {
+        setLocation(redirectTo);
+      }
+      return;
+    }
+    
     if (loading) return;
 
     if (requireAuth && !user) {

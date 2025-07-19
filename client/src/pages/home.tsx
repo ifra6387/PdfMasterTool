@@ -97,7 +97,7 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button
-              onClick={() => setAuthModalOpen(true)}
+              onClick={() => setLocation('/signin')}
               size="lg"
               className="bg-primary hover:bg-primary/90 text-white px-8 py-4 text-lg font-heading"
             >
@@ -105,7 +105,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button
-              onClick={() => setAuthModalOpen(true)}
+              onClick={() => setLocation('/signin')}
               variant="outline"
               size="lg"
               className="px-8 py-4 text-lg font-heading border-2"
