@@ -230,119 +230,152 @@ export async function unlockPDF(file: File, password?: string): Promise<Blob> {
   }
 }
 
-// PDF to Word utility - Enhanced version with proper error handling
+// PDF to Word utility - Completely rewritten for better reliability
 export async function pdfToWord(file: File): Promise<Blob> {
   try {
+    // Initialize PDF.js worker
     const pdfjsLib = await initializePdfJs();
     const arrayBuffer = await file.arrayBuffer();
     
-    // Load PDF with ignoreEncryption option
-    const pdf = await pdfjsLib.getDocument({ 
-      data: arrayBuffer, 
-      ignoreEncryption: true,
-      verbosity: 0 // Reduce console warnings
-    }).promise;
+    console.log('Loading PDF document...');
     
-    let allText = '';
+    // Load PDF document
+    const loadingTask = pdfjsLib.getDocument({
+      data: arrayBuffer,
+      ignoreEncryption: true,
+      verbosity: 0
+    });
+    
+    const pdf = await loadingTask.promise;
+    console.log(`PDF loaded successfully with ${pdf.numPages} pages`);
+    
+    let extractedText = '';
     let totalCharacters = 0;
     
-    // Extract text from all pages
+    // Process each page
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      console.log(`Processing page ${pageNum}...`);
+      
       const page = await pdf.getPage(pageNum);
       const textContent = await page.getTextContent();
       
-      // Enhanced text extraction with better formatting
-      const textItems: any[] = textContent.items;
+      if (textContent.items.length === 0) {
+        console.warn(`Page ${pageNum} has no text items`);
+        continue;
+      }
+      
+      // Extract text from page
       let pageText = '';
-      let lastY = 0;
-      let lastX = 0;
+      const textItems = textContent.items.filter((item: any) => 
+        item.str && typeof item.str === 'string'
+      );
       
-      // Sort items by Y position (top to bottom) then X position (left to right)
-      textItems.sort((a, b) => {
-        const yDiff = b.transform[5] - a.transform[5]; // Y coordinate (inverted)
-        if (Math.abs(yDiff) > 5) return yDiff > 0 ? -1 : 1;
-        return a.transform[4] - b.transform[4]; // X coordinate
-      });
-      
-      textItems.forEach((item: any, index: number) => {
-        if (item.str && item.str.trim()) {
-          const currentY = item.transform[5];
-          const currentX = item.transform[4];
-          const text = item.str.trim();
+      // Simple text extraction - just concatenate text items with spaces
+      for (let i = 0; i < textItems.length; i++) {
+        const item = textItems[i] as any;
+        const text = item.str.trim();
+        
+        if (text) {
+          // Add the text
+          pageText += text;
           
-          // Add line break if Y position changed significantly (new line)
-          if (lastY && Math.abs(lastY - currentY) > 5) {
-            pageText += '\n';
-          } 
-          // Add space if on same line but X position indicates separation
-          else if (lastX && currentX > lastX + 10) {
+          // Add space between items if needed
+          if (i < textItems.length - 1) {
             pageText += ' ';
           }
-          
-          pageText += text;
-          lastY = currentY;
-          lastX = currentX + (text.length * 6); // Approximate character width
         }
-      });
+      }
       
+      // Clean up the page text
+      pageText = pageText.replace(/\s+/g, ' ').trim();
       
-      // Clean up and add page text
-      pageText = pageText.trim();
       if (pageText) {
-        allText += pageText + '\n\n';
+        extractedText += pageText + '\n\n';
         totalCharacters += pageText.length;
+        console.log(`Page ${pageNum}: extracted ${pageText.length} characters`);
       }
     }
     
-    // Check if we extracted meaningful text
-    if (totalCharacters < 10) {
-      throw new Error('This PDF appears to be image-based and cannot be converted to editable Word. Please upload a text-based PDF.');
+    console.log(`Total extracted: ${totalCharacters} characters from ${pdf.numPages} pages`);
+    
+    // Check if meaningful text was extracted
+    if (totalCharacters < 5) {
+      throw new Error('This PDF may be image-based or unreadable. Please upload a text-based PDF.');
     }
     
-    console.log(`Extracted ${totalCharacters} characters from ${pdf.numPages} pages`);
+    // Create Word document using html-docx-js
+    const docxBlob = await createWordDocument(extractedText);
     
-    // Create proper DOCX file using docx library
-    const docxContent = await createDocxFromText(allText);
-    return new Blob([docxContent], { 
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-    });
+    console.log('Word document created successfully');
+    return docxBlob;
+    
   } catch (error) {
-    console.error('PDF to Word error:', error);
-    if (error instanceof Error && error.message.includes('image-based')) {
-      throw error; // Re-throw specific error message
+    console.error('PDF to Word conversion error:', error);
+    
+    if (error instanceof Error) {
+      if (error.message.includes('image-based') || error.message.includes('unreadable')) {
+        throw error;
+      }
+      if (error.message.includes('Invalid PDF')) {
+        throw new Error('The uploaded file is not a valid PDF document.');
+      }
     }
+    
     throw new Error('Failed to convert PDF to Word. Please ensure the PDF is not corrupted and contains readable text.');
   }
 }
 
-// Helper function to create DOCX from text using the docx library
-async function createDocxFromText(text: string): Promise<Uint8Array> {
-  const { Document, Packer, Paragraph, TextRun } = await import('docx');
-  
-  // Split text into paragraphs
-  const paragraphs = text.split('\n').filter(line => line.trim().length > 0);
-  
-  const docParagraphs = paragraphs.map(paragraphText => 
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: paragraphText.trim(),
-          size: 24, // 12pt font size (size is in half-points)
-        }),
-      ],
-    })
-  );
-  
-  const doc = new Document({
-    sections: [
-      {
+// Helper function to create Word document using docx library
+async function createWordDocument(text: string): Promise<Blob> {
+  try {
+    const { Document, Packer, Paragraph, TextRun } = await import('docx');
+    
+    console.log('Creating Word document from extracted text...');
+    
+    // Split text into paragraphs and clean up
+    const paragraphTexts = text
+      .split('\n\n')
+      .filter(p => p.trim())
+      .map(p => p.trim().replace(/\n/g, ' ').replace(/\s+/g, ' '));
+    
+    console.log(`Creating ${paragraphTexts.length} paragraphs`);
+    
+    // Create document paragraphs
+    const docParagraphs = paragraphTexts.map(paragraphText => 
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: paragraphText,
+            size: 24, // 12pt font size (size is in half-points)
+            font: "Times New Roman",
+          }),
+        ],
+        spacing: {
+          after: 200, // 10pt space after paragraph
+        },
+      })
+    );
+    
+    // Create the document
+    const doc = new Document({
+      sections: [{
         properties: {},
         children: docParagraphs,
-      },
-    ],
-  });
-  
-  return await Packer.toBuffer(doc);
+      }],
+    });
+    
+    // Generate the buffer
+    const buffer = await Packer.toBuffer(doc);
+    console.log('Word document created successfully');
+    
+    return new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+    
+  } catch (error) {
+    console.error('Error creating Word document:', error);
+    throw new Error('Failed to create Word document. Please try again.');
+  }
 }
 
 // Word to PDF utility - Enhanced version

@@ -6,11 +6,10 @@ let workerInitialized = false;
 export function initializePdfWorker() {
   if (!workerInitialized) {
     try {
-      // Use exact version match to avoid API/Worker version mismatch
-      const version = '3.11.174'; // Fixed compatible version
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.js`;
+      // Use bundled worker that matches the installed version
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
       workerInitialized = true;
-      console.log(`PDF.js worker initialized with version ${version}`);
+      console.log(`PDF.js worker initialized with exact version match`);
     } catch (error) {
       console.error('Failed to initialize PDF worker:', error);
       throw new Error('PDF processing initialization failed');
