@@ -1,0 +1,106 @@
+Create a professional full-stack PDF Tools Web App like iLovePDF using:
+
+🔧 Tech Stack:
+- Frontend: Tailwind CSS (with Poppins & Montserrat fonts)
+- Backend: Node.js + Express
+- Authentication: Supabase (Replit built-in)
+- File Upload Handling: multer or express-fileupload
+- OCR: tesseract.js
+- Auto-delete files after 1 hour with node-cron
+- No third-party API keys
+
+🎨 Styling Guide:
+- No red colors used
+- Fonts:
+  - Headings: Poppins
+  - Body: Montserrat
+- Color Palette:
+  - Primary: Royal Blue `#3B82F6`
+  - Success: Mint Green `#10B981`
+  - Backgrounds: Ghost White `#F9FAFB`, Gunmetal `#1F2937`
+  - Text: Cool Gray `#9CA3AF`
+- Theme Toggle: Light & Dark mode saved in `localStorage`
+
+---
+
+📁 Pages To Build:
+
+### 1️⃣ Landing Page – 5 Sections:
+
+1. **Hero Section**
+   - Headline, short description
+   - CTA buttons (Get Started / Login)
+
+2. **Tool Showcase**
+   - Grid layout showing PDF tools
+
+3. **How It Works**
+   - 3 Steps: Upload → Process → Download
+
+4. **Why Choose Us**
+   - Features: Open-source, Private, Fast, No Ads
+
+5. **Footer**
+   - About, Terms, Privacy, Contact
+   - Social media icons (LinkedIn, GitHub, Twitter)
+
+---
+
+### 2️⃣ Login / Signup Page:
+- Email/password via Supabase
+- Form validation
+- Session stored in `localStorage`
+- Redirect to `/dashboard` after login
+- Branded design using Tailwind
+
+---
+
+### 3️⃣ Dashboard Page – 5 Sections:
+
+1. **Header Bar**
+   - Logo, Welcome username
+   - Theme toggle button (light/dark)
+   - Logout button
+
+2. **Tool Categories**
+   - Organized like iLovePDF
+   - Categories:
+     - PDF Actions: Merge, Split, Compress
+     - Conversions: Word, Excel, JPG ↔ PDF
+     - Page Tools: Organize, Rotate, Add Page Numbers
+     - Security: Protect, Unlock, Redact
+     - Advanced: OCR, HTML to PDF, Sign PDF
+
+3. **File Upload Section**
+   - Upload from **PC only**
+   - Max file size: 20MB
+   - Accept only supported types (PDF, DOCX, etc.)
+   - Show file name + clear error if invalid
+
+4. **Processing Section**
+   - Backend runs processing logic
+   - Use tools like `pdf-lib`, `pdfkit`, `sharp`, `puppeteer`, `tesseract.js`
+
+5. **Result + Download Section**
+   - Show success message
+   - Display a `<a download>` button to download final file
+   - Files should be downloadable directly to user's PC
+
+---
+
+🧼 Auto File Deletion:
+- Use `node-cron` or timestamps to delete processed files after 1 hour
+
+📦 Required Packages:
+- `express`, `express-fileupload` or `multer`
+- `pdf-lib`, `pdfkit`, `hummus`, `puppeteer`, `sharp`
+- `tesseract.js` for OCR
+- `node-cron` for auto-deletion
+- `dotenv`, `cors`, `supabase-js`
+
+---
+
+🚀 Final Goal:
+- Fully responsive, secure, feature-rich iLovePDF-style web app
+- 5 landing sections, 5 dashboard sections
+- Deployed & working 100% on Replit without third-party APIs

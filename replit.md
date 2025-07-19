@@ -8,6 +8,14 @@ This is a professional-grade, full-stack PDF utility web application built with 
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (January 2025)
+- **Professional Landing Page**: Added comprehensive 5-section landing page with Hero, Tool Showcase, How It Works, Why Choose Us, and Footer sections
+- **Categorized Dashboard**: Organized 13+ PDF tools into professional categories (PDF Actions, Conversions, Page Tools, Security, Advanced)
+- **Complete Color Scheme**: Updated to Royal Blue (#3B82F6) and Mint Green (#10B981) with no red colors as specified
+- **Typography Enhancement**: Implemented Poppins for headings and Montserrat for body text throughout the application
+- **Fixed Authentication**: Resolved Supabase signOut error and proper redirect flow (login → /tools, logout → /)
+- **Professional Design**: Match iLovePDF-style layout with responsive grid and professional aesthetics
+
 ## System Architecture
 
 ### Frontend Architecture

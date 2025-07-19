@@ -37,97 +37,141 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const pdfTools = [
+const toolCategories = [
   {
-    id: 'merge',
-    name: 'Merge PDFs',
-    description: 'Combine multiple PDF files into one',
-    icon: Merge,
-    color: 'text-primary'
+    category: 'PDF Actions',
+    description: 'Essential PDF operations',
+    tools: [
+      {
+        id: 'merge',
+        name: 'Merge PDFs',
+        description: 'Combine multiple PDF files into one',
+        icon: Merge,
+        color: 'text-primary'
+      },
+      {
+        id: 'split',
+        name: 'Split PDF',
+        description: 'Extract pages from your PDF',
+        icon: Split,
+        color: 'text-accent'
+      },
+      {
+        id: 'compress',
+        name: 'Compress PDF',
+        description: 'Reduce PDF file size',
+        icon: Archive,
+        color: 'text-primary'
+      }
+    ]
   },
   {
-    id: 'split',
-    name: 'Split PDF',
-    description: 'Extract pages from your PDF',
-    icon: Split,
-    color: 'text-accent'
+    category: 'Conversions',
+    description: 'Format conversion tools',
+    tools: [
+      {
+        id: 'pdf-to-word',
+        name: 'PDF ↔ Word',
+        description: 'Convert between PDF and Word documents',
+        icon: FileText,
+        color: 'text-accent'
+      },
+      {
+        id: 'pdf-to-excel',
+        name: 'PDF ↔ Excel',
+        description: 'Convert between PDF and Excel files',
+        icon: FileSpreadsheet,
+        color: 'text-primary'
+      },
+      {
+        id: 'pdf-to-jpg',
+        name: 'PDF ↔ JPG',
+        description: 'Convert PDF pages to images or vice versa',
+        icon: FileImage,
+        color: 'text-accent'
+      },
+      {
+        id: 'pdf-to-html',
+        name: 'PDF ↔ HTML',
+        description: 'Convert between PDF and HTML format',
+        icon: Globe,
+        color: 'text-primary'
+      }
+    ]
   },
   {
-    id: 'compress',
-    name: 'Compress PDF',
-    description: 'Reduce PDF file size',
-    icon: Archive,
-    color: 'text-primary'
+    category: 'Page Tools',
+    description: 'Page management and organization',
+    tools: [
+      {
+        id: 'rotate',
+        name: 'Add/Remove/Rotate Pages',
+        description: 'Manage PDF pages - add, remove, or rotate',
+        icon: RotateCw,
+        color: 'text-accent'
+      },
+      {
+        id: 'watermark',
+        name: 'Watermark & Page Numbers',
+        description: 'Add watermarks and page numbers',
+        icon: Droplets,
+        color: 'text-primary'
+      }
+    ]
   },
   {
-    id: 'pdf-to-word',
-    name: 'PDF ↔ Word',
-    description: 'Convert between PDF and Word documents',
-    icon: FileText,
-    color: 'text-accent'
+    category: 'Security',
+    description: 'Protect and secure your PDFs',
+    tools: [
+      {
+        id: 'protect',
+        name: 'Password-Protect PDF',
+        description: 'Add password protection to your PDF',
+        icon: Lock,
+        color: 'text-accent'
+      },
+      {
+        id: 'unlock',
+        name: 'Unlock PDF',
+        description: 'Remove password from PDF',
+        icon: Unlock,
+        color: 'text-primary'
+      },
+      {
+        id: 'redact',
+        name: 'Redact PDF',
+        description: 'Remove sensitive information permanently',
+        icon: Eye,
+        color: 'text-accent'
+      }
+    ]
   },
   {
-    id: 'pdf-to-excel',
-    name: 'PDF ↔ Excel',
-    description: 'Convert between PDF and Excel files',
-    icon: FileSpreadsheet,
-    color: 'text-primary'
-  },
-  {
-    id: 'pdf-to-jpg',
-    name: 'PDF ↔ JPG',
-    description: 'Convert PDF pages to images or vice versa',
-    icon: FileImage,
-    color: 'text-accent'
-  },
-  {
-    id: 'pdf-to-html',
-    name: 'PDF ↔ HTML',
-    description: 'Convert between PDF and HTML format',
-    icon: Globe,
-    color: 'text-primary'
-  },
-  {
-    id: 'ocr-scan',
-    name: 'OCR/Scan to PDF',
-    description: 'Convert scanned images to searchable PDF',
-    icon: Scan,
-    color: 'text-accent'
-  },
-  {
-    id: 'rotate',
-    name: 'Add/Remove/Rotate Pages',
-    description: 'Manage PDF pages - add, remove, or rotate',
-    icon: RotateCw,
-    color: 'text-primary'
-  },
-  {
-    id: 'watermark',
-    name: 'Watermark & Page Numbers',
-    description: 'Add watermarks and page numbers',
-    icon: Droplets,
-    color: 'text-accent'
-  },
-  {
-    id: 'protect',
-    name: 'Password-Protect PDF',
-    description: 'Add password protection to your PDF',
-    icon: Lock,
-    color: 'text-primary'
-  },
-  {
-    id: 'unlock',
-    name: 'Unlock PDF',
-    description: 'Remove password from PDF',
-    icon: Unlock,
-    color: 'text-accent'
-  },
-  {
-    id: 'redact',
-    name: 'Redact PDF',
-    description: 'Remove sensitive information permanently',
-    icon: Eye,
-    color: 'text-primary'
+    category: 'Advanced',
+    description: 'Professional PDF tools',
+    tools: [
+      {
+        id: 'ocr-scan',
+        name: 'OCR/Scan to PDF',
+        description: 'Convert scanned images to searchable PDF',
+        icon: Scan,
+        color: 'text-primary'
+      },
+      {
+        id: 'html-to-pdf',
+        name: 'HTML to PDF',
+        description: 'Convert web pages to PDF documents',
+        icon: Globe,
+        color: 'text-accent'
+      },
+      {
+        id: 'sign',
+        name: 'Sign PDF',
+        description: 'Add digital signatures to your PDF',
+        icon: Edit3,
+        color: 'text-primary'
+      }
+    ]
   }
 ];
 
@@ -227,34 +271,45 @@ export default function Tools() {
           </div>
         </div>
 
-        {/* Tools Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {pdfTools.map((tool) => {
-            const Icon = tool.icon;
-            return (
-              <button
-                key={tool.id}
-                onClick={() => handleToolClick(tool.id)}
-                className="group p-6 bg-white/70 hover:bg-white/90 dark:bg-slate-800/70 dark:hover:bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/50 hover:border-white/40 dark:hover:border-slate-600/50 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] text-left"
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 dark:from-slate-700 dark:to-slate-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                      <Icon className={`h-6 w-6 ${tool.color}`} />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold font-heading text-slate-900 dark:text-white mb-1">
-                      {tool.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {tool.description}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+        {/* Tool Categories */}
+        <div className="space-y-12">
+          {toolCategories.map((category) => (
+            <div key={category.category}>
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold font-heading mb-2">{category.category}</h3>
+                <p className="text-muted-foreground">{category.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {category.tools.map((tool) => {
+                  const Icon = tool.icon;
+                  return (
+                    <button
+                      key={tool.id}
+                      onClick={() => handleToolClick(tool.id)}
+                      className="group p-6 bg-white/70 hover:bg-white/90 dark:bg-slate-800/70 dark:hover:bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/50 hover:border-white/40 dark:hover:border-slate-600/50 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] text-left"
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 dark:from-slate-700 dark:to-slate-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                            <Icon className={`h-6 w-6 ${tool.color}`} />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold font-heading text-slate-900 dark:text-white mb-1">
+                            {tool.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {tool.description}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </main>
     </div>
