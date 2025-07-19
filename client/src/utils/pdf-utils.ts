@@ -68,8 +68,8 @@ export async function compressPDF(file: File, quality: number = 0.7): Promise<Bl
 
 // PDF to Images utility
 export async function pdfToImages(file: File, format: 'jpg' | 'png' = 'jpg'): Promise<Blob> {
-  const pdfjsLib = await import('pdfjs-dist');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const { pdfjsLib, initializePdfWorker } = await import('./worker-setup');
+  initializePdfWorker();
   
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -188,41 +188,88 @@ export async function wordToPDF(file: File): Promise<Blob> {
   return pdf.output('blob');
 }
 
-// PDF to Word utility (simplified - extracts text)
+// PDF to Word utility - Creates actual DOCX format
 export async function pdfToWord(file: File): Promise<Blob> {
-  const pdfjsLib = await import('pdfjs-dist');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const { pdfjsLib, initializePdfWorker } = await import('./worker-setup');
+  initializePdfWorker();
   
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   
   let fullText = '';
+  const pages: string[] = [];
+  
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
     const page = await pdf.getPage(pageNum);
     const textContent = await page.getTextContent();
-    const pageText = textContent.items.map((item: any) => item.str).join(' ');
-    fullText += pageText + '\n\n';
+    
+    // Extract text with better formatting
+    let pageText = '';
+    let lastY = 0;
+    
+    textContent.items.forEach((item: any) => {
+      if (item.str.trim()) {
+        // Add line break if Y position changed significantly (new line)
+        if (lastY && Math.abs(lastY - item.transform[5]) > 5) {
+          pageText += '\n';
+        }
+        pageText += item.str + ' ';
+        lastY = item.transform[5];
+      }
+    });
+    
+    pages.push(pageText.trim());
+    fullText += pageText.trim() + '\n\n';
   }
   
-  // Create a simple Word document structure
-  const wordContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Converted Document</title>
-    </head>
-    <body>
-      <div style="font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.6;">
-        ${fullText.split('\n').map(line => `<p>${line}</p>`).join('')}
-      </div>
-    </body>
-    </html>
-  `;
-  
-  return new Blob([wordContent], { 
+  // Create proper DOCX structure using minimal XML
+  const docxContent = await createDocxFromText(fullText);
+  return new Blob([docxContent], { 
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
   });
+}
+
+// Helper function to create basic DOCX structure
+async function createDocxFromText(text: string): Promise<ArrayBuffer> {
+  const JSZip = (await import('jszip')).default;
+  const zip = new JSZip();
+  
+  // Create basic DOCX structure
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
+
+  const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+
+  const wordRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+</Relationships>`;
+
+  // Convert text to Word XML format
+  const paragraphs = text.split('\n').filter(p => p.trim()).map(paragraph => 
+    `<w:p><w:r><w:t>${paragraph.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</w:t></w:r></w:p>`
+  ).join('');
+
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    ${paragraphs}
+  </w:body>
+</w:document>`;
+
+  // Add files to zip
+  zip.file('[Content_Types].xml', contentTypes);
+  zip.file('_rels/.rels', rels);
+  zip.file('word/_rels/document.xml.rels', wordRels);
+  zip.file('word/document.xml', documentXml);
+
+  return await zip.generateAsync({ type: 'arraybuffer' });
 }
 
 // Helper function to convert file to base64

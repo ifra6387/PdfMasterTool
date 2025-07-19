@@ -9,7 +9,12 @@ export default function PDFToWord() {
       throw new Error('Please select exactly one PDF file to convert');
     }
     
-    return await pdfToWord(files[0]);
+    try {
+      return await pdfToWord(files[0]);
+    } catch (error) {
+      console.error('PDF to Word conversion error:', error);
+      throw new Error('Failed to convert PDF to Word. Please ensure the PDF is not corrupted and contains readable text.');
+    }
   };
 
   return (
