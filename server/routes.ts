@@ -1,5 +1,6 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
+import { spawn } from "child_process";
 import { storage } from "./storage";
 import { loginSchema, signupSchema, insertFileSchema } from "@shared/schema";
 import bcrypt from "bcrypt";
@@ -211,6 +212,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ status: file.status });
     } catch (error: any) {
       res.status(500).json({ message: error.message || "Failed to get status" });
+    }
+  });
+
+  // PDF to Word conversion route (Python-based)
+  app.post("/api/convert/pdf-to-word", upload.single('file'), async (req: MulterRequest, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No PDF file uploaded" });
+      }
+
+      if (req.file.mimetype !== 'application/pdf') {
+        return res.status(400).json({ message: "Please upload a PDF file" });
+      }
+
+      // Create output directory
+      const outputDir = path.join(process.cwd(), "outputs");
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+
+      // Generate output filename
+      const originalName = path.parse(req.file.originalname).name;
+      const outputFilename = `${originalName}-converted-${Date.now()}.docx`;
+      const outputPath = path.join(outputDir, outputFilename);
+
+      // Run Python converter
+      const pythonScript = path.join(process.cwd(), "server", "pdf_converter.py");
+      
+      const result = await new Promise<string>((resolve, reject) => {
+        const python = spawn('python3', [pythonScript, req.file!.path, outputPath]);
+        
+        let stdout = '';
+        let stderr = '';
+
+        python.stdout.on('data', (data) => {
+          stdout += data.toString();
+        });
+
+        python.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        python.on('close', (code) => {
+          if (code === 0) {
+            resolve(stdout);
+          } else {
+            console.error('Python conversion error:', stderr);
+            reject(new Error(`Conversion failed: ${stderr || 'Unknown error'}`));
+          }
+        });
+
+        python.on('error', (err) => {
+          reject(new Error(`Failed to start Python process: ${err.message}`));
+        });
+      });
+
+      // Parse the result
+      let conversionResult;
+      try {
+        conversionResult = JSON.parse(result);
+      } catch (e) {
+        throw new Error('Invalid response from converter');
+      }
+
+      if (!conversionResult.success) {
+        return res.status(400).json({ message: conversionResult.error });
+      }
+
+      // Check if output file exists
+      if (!fs.existsSync(outputPath)) {
+        return res.status(500).json({ message: "Conversion completed but output file not found" });
+      }
+
+      // Return the converted file
+      res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      
+      const fileStream = fs.createReadStream(outputPath);
+      fileStream.pipe(res);
+
+      // Cleanup input file after a delay
+      setTimeout(() => {
+        try {
+          fs.unlinkSync(req.file!.path);
+          fs.unlinkSync(outputPath);
+        } catch (err) {
+          console.error('Cleanup error:', err);
+        }
+      }, 30000); // 30 seconds delay
+
+    } catch (error: any) {
+      console.error('PDF to Word conversion error:', error);
+      res.status(500).json({ message: error.message || "Conversion failed" });
     }
   });
 
