@@ -75,10 +75,6 @@ app.use((req, res, next) => {
     res.sendFile(path.join(baseDir, 'index.html'));
   });
 
-  app.get('/dashboard.html', (req, res) => {
-    res.sendFile(path.join(baseDir, 'dashboard.html'));
-  });
-
   // Handle tool routes
   app.get('/tools/:tool', (req, res) => {
     const toolName = req.params.tool;
