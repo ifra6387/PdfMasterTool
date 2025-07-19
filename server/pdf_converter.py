@@ -108,31 +108,35 @@ def extract_formatted_lines(chars):
     return sorted_lines
 
 def should_start_new_paragraph(line_data, current_paragraph):
-    """Determine if a line should start a new paragraph"""
+    """More conservative paragraph break detection"""
     if not current_paragraph:
         return False
     
     last_line = current_paragraph[-1]
     
-    # Check for formatting changes that suggest new paragraph
-    font_size_change = abs(line_data['font_size'] - last_line['font_size']) > 1
+    # Only break on significant formatting changes
+    significant_font_size_change = abs(line_data['font_size'] - last_line['font_size']) > 2
     bold_change = line_data['is_bold'] != last_line['is_bold']
     
     # Check for content patterns
     text = line_data['text']
     last_text = last_line['text']
     
-    # Sentence ending followed by capitalized text
-    sentence_end = last_text.rstrip().endswith(('.', '!', '?', ':'))
+    # Clear sentence ending followed by new topic
+    sentence_end = last_text.rstrip().endswith(('.', '!', '?'))
     starts_capital = text and text[0].isupper()
     
-    # Date patterns, job titles, section headers
-    has_date = contains_date_pattern(text)
-    is_title = is_likely_heading_or_title(text)
+    # Only break for clear new sections
+    is_clear_new_section = (
+        any(section in text.lower() for section in ['work experience', 'education', 'skills', 'projects']) or
+        (contains_date_pattern(text) and any(word in text.lower() for word in ['designer', 'developer', 'engineer'])) or
+        (text.endswith(':') and len(text.split()) <= 5)
+    )
     
-    return (font_size_change or bold_change or 
-            (sentence_end and starts_capital) or 
-            has_date or is_title)
+    # Be more conservative - only break on clear indicators
+    return (significant_font_size_change or 
+            (bold_change and is_clear_new_section) or
+            (sentence_end and starts_capital and len(current_paragraph) > 2))
 
 def analyze_paragraph(paragraph_lines, text):
     """Analyze a paragraph to determine its type and formatting"""
@@ -159,36 +163,50 @@ def analyze_paragraph(paragraph_lines, text):
     }
 
 def detect_advanced_heading(text, lines):
-    """Advanced heading detection using formatting and content analysis"""
-    if not text or len(text) > 200:
+    """More conservative heading detection to match PDF structure better"""
+    if not text or len(text) > 150:  # Long text is unlikely to be a heading
         return False
     
     # Get formatting info
     avg_font_size = sum(line['font_size'] for line in lines) / len(lines)
     is_bold = any(line['is_bold'] for line in lines)
     
-    # Content-based indicators
-    content_indicators = [
-        text.isupper(),  # ALL CAPS
-        len(text.split()) <= 10,  # Short phrases
-        text.endswith(':'),  # Ends with colon
-        any(word in text.lower() for word in ['experience', 'education', 'skills', 'projects', 'work', 'summary']),
-        contains_date_pattern(text),
-        is_likely_heading_or_title(text)
-    ]
+    # Major section headers (these should definitely be headings)
+    major_sections = ['work experience', 'experience', 'education', 'skills', 'projects', 'summary', 'objective']
+    is_major_section = any(section in text.lower() for section in major_sections)
     
-    # Formatting-based indicators
-    format_indicators = [
-        is_bold,
-        avg_font_size > 12,  # Larger than normal text
-        len(lines) == 1  # Single line
-    ]
+    # Name and contact info (top of resume)
+    is_name_or_title = (
+        len(text.split()) <= 3 and  # Short text
+        (text.istitle() or text.isupper()) and  # Proper case or all caps
+        len(text) < 50 and  # Not too long
+        not any(word in text.lower() for word in ['with', 'and', 'the', 'for', 'in', 'at'])  # Not descriptive text
+    )
     
-    # Combine indicators
-    content_score = sum(content_indicators)
-    format_score = sum(format_indicators)
+    # Job titles with dates (should be headings)
+    has_recent_date = any(str(year) in text for year in range(2020, 2025))
+    is_job_title = (
+        has_recent_date and 
+        any(word in text.lower() for word in ['designer', 'developer', 'manager', 'engineer', 'analyst']) and
+        len(text.split()) <= 12
+    )
     
-    return (content_score >= 2) or (content_score >= 1 and format_score >= 2)
+    # Very strict criteria - only clear headings
+    definite_heading = (
+        is_major_section or  # Major resume sections
+        is_name_or_title or  # Name/title at top
+        is_job_title or      # Job titles with dates
+        (text.endswith(':') and len(text.split()) <= 5)  # Short text ending with colon
+    )
+    
+    # Additional check - must have some formatting distinction
+    has_formatting_distinction = (
+        is_bold or 
+        avg_font_size > 12.5 or
+        text.isupper()
+    )
+    
+    return definite_heading and has_formatting_distinction
 
 def detect_heading(text, lines):
     """Detect if text is likely a heading based on various criteria"""
@@ -390,68 +408,31 @@ def create_formatted_paragraph(doc, text, formatting):
     """Create a paragraph with preserved formatting"""
     para = doc.add_paragraph()
     
-    # Check for special formatting patterns
-    if text.isupper() and len(text) < 100:
-        # All caps - likely important text
+    # Less aggressive formatting - focus on readability
+    if text.isupper() and len(text) < 50:
+        # Short all caps - likely important text
         run = para.add_run(text)
         run.font.name = 'Calibri'
         run.font.size = Pt(11)
         run.bold = True
-    elif formatting.get('is_bold', False) or any(keyword in text.lower() for keyword in ['ui/ux', 'designer', 'developer', 'manager']):
-        # Bold text or job titles
+    elif formatting.get('is_bold', False):
+        # Actually bold in original
         run = para.add_run(text)
         run.font.name = 'Calibri'
         run.font.size = Pt(11)
         run.bold = True
     else:
-        # Regular text with potential inline formatting
-        create_text_with_inline_formatting(para, text)
-    
-    # Paragraph spacing
-    para.paragraph_format.space_after = Pt(4)
-    para.paragraph_format.line_spacing = 1.1
-    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-
-def create_text_with_inline_formatting(para, text):
-    """Create text with potential inline formatting like bold keywords"""
-    import re
-    
-    # Keywords that should be bold
-    bold_keywords = ['ui/ux', 'figma', 'adobe xd', 'wordpress', 'html', 'css', 'javascript', 'react', 'vue', 'angular']
-    
-    # Split text and apply formatting
-    words = text.split()
-    current_text = []
-    
-    for word in words:
-        is_bold = any(keyword.lower() in word.lower() for keyword in bold_keywords)
-        
-        if is_bold and current_text:
-            # Add accumulated normal text
-            run = para.add_run(' '.join(current_text) + ' ')
-            run.font.name = 'Calibri'
-            run.font.size = Pt(11)
-            current_text = []
-            
-            # Add bold word
-            run = para.add_run(word + ' ')
-            run.font.name = 'Calibri'
-            run.font.size = Pt(11)
-            run.bold = True
-        elif is_bold:
-            # Add bold word directly
-            run = para.add_run(word + ' ')
-            run.font.name = 'Calibri'
-            run.font.size = Pt(11)
-            run.bold = True
-        else:
-            current_text.append(word)
-    
-    # Add remaining normal text
-    if current_text:
-        run = para.add_run(' '.join(current_text))
+        # Regular text - keep it simple for better readability
+        run = para.add_run(text)
         run.font.name = 'Calibri'
         run.font.size = Pt(11)
+    
+    # Better paragraph spacing for readability
+    para.paragraph_format.space_after = Pt(6)
+    para.paragraph_format.line_spacing = 1.15
+    para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+
 
 def convert_pdf_to_word(input_path, output_path):
     """Main conversion function with enhanced structure preservation"""
