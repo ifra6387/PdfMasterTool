@@ -16,13 +16,21 @@ import tempfile
 import traceback
 
 def extract_text_with_pdfplumber(pdf_path):
-    """Extract text using pdfplumber with advanced formatting and structure preservation"""
+    """Extract text using pdfplumber with table and structure detection"""
     try:
         structured_content = []
         
         with pdfplumber.open(pdf_path) as pdf:
             for page_num, page in enumerate(pdf.pages):
-                # Try to extract with character-level information for better formatting detection
+                # First try to extract tables
+                tables = page.extract_tables()
+                if tables:
+                    for table in tables:
+                        table_info = process_table_data(table)
+                        if table_info:
+                            structured_content.append(table_info)
+                
+                # Extract character-level information for remaining text
                 chars = page.chars
                 if not chars:
                     continue
@@ -38,19 +46,19 @@ def extract_text_with_pdfplumber(pdf_path):
                         if current_paragraph:
                             para_text = ' '.join([l['text'] for l in current_paragraph])
                             if len(para_text.strip()) > 8:
-                                # Analyze the paragraph for type and formatting
-                                para_info = analyze_paragraph(current_paragraph, para_text)
+                                # Check if this looks like a list item or structured text
+                                para_info = analyze_paragraph_with_structure(current_paragraph, para_text)
                                 structured_content.append(para_info)
                             current_paragraph = []
                         continue
                     
                     # Check if this line should start a new paragraph
-                    should_break = should_start_new_paragraph(line_data, current_paragraph)
+                    should_break = should_start_new_paragraph_enhanced(line_data, current_paragraph)
                     
                     if should_break and current_paragraph:
                         para_text = ' '.join([l['text'] for l in current_paragraph])
                         if len(para_text.strip()) > 8:
-                            para_info = analyze_paragraph(current_paragraph, para_text)
+                            para_info = analyze_paragraph_with_structure(current_paragraph, para_text)
                             structured_content.append(para_info)
                         current_paragraph = [line_data]
                     else:
@@ -60,7 +68,7 @@ def extract_text_with_pdfplumber(pdf_path):
                 if current_paragraph:
                     para_text = ' '.join([l['text'] for l in current_paragraph])
                     if len(para_text.strip()) > 8:
-                        para_info = analyze_paragraph(current_paragraph, para_text)
+                        para_info = analyze_paragraph_with_structure(current_paragraph, para_text)
                         structured_content.append(para_info)
         
         return structured_content
@@ -68,6 +76,116 @@ def extract_text_with_pdfplumber(pdf_path):
     except Exception as e:
         print(f"pdfplumber extraction failed: {e}", file=sys.stderr)
         return None
+
+def process_table_data(table):
+    """Process extracted table data into structured format"""
+    if not table or len(table) < 2:
+        return None
+    
+    # Clean table data
+    cleaned_table = []
+    for row in table:
+        if row and any(cell and str(cell).strip() for cell in row):
+            cleaned_row = [str(cell).strip() if cell else "" for cell in row]
+            cleaned_table.append(cleaned_row)
+    
+    if len(cleaned_table) < 2:
+        return None
+    
+    return {
+        'text': '',  # Will be filled during Word creation
+        'type': 'table',
+        'data': cleaned_table,
+        'formatting': {'table_type': 'data'}
+    }
+
+def analyze_paragraph_with_structure(paragraph_lines, text):
+    """Analyze paragraph with enhanced structure detection"""
+    if not paragraph_lines:
+        return {'text': text, 'type': 'paragraph', 'formatting': {}}
+    
+    # Check for list items
+    is_list_item = detect_list_item(text)
+    
+    # Check for numbered items
+    is_numbered_item = detect_numbered_item(text)
+    
+    # Analyze formatting across the paragraph
+    font_sizes = [line['font_size'] for line in paragraph_lines]
+    is_bold = any(line['is_bold'] for line in paragraph_lines)
+    avg_font_size = sum(font_sizes) / len(font_sizes)
+    
+    # Determine paragraph type
+    is_heading = detect_advanced_heading(text, paragraph_lines)
+    
+    # Determine the content type
+    if is_heading:
+        content_type = 'heading'
+    elif is_numbered_item:
+        content_type = 'numbered_item'
+    elif is_list_item:
+        content_type = 'list_item'
+    else:
+        content_type = 'paragraph'
+    
+    return {
+        'text': text,
+        'type': content_type,
+        'level': get_heading_level(text) if is_heading else None,
+        'formatting': {
+            'is_bold': is_bold,
+            'font_size': avg_font_size,
+            'line_count': len(paragraph_lines),
+            'is_numbered': is_numbered_item,
+            'is_list': is_list_item
+        }
+    }
+
+def detect_list_item(text):
+    """Detect if text is a list item"""
+    text_stripped = text.strip()
+    return (
+        text_stripped.startswith('•') or
+        text_stripped.startswith('-') or
+        text_stripped.startswith('*') or
+        (len(text_stripped) > 0 and text_stripped[0] in '•▪▫◦‣⁃')
+    )
+
+def detect_numbered_item(text):
+    """Detect if text starts with a number or numbered list"""
+    import re
+    text_stripped = text.strip()
+    
+    # Pattern for numbered items: "1.", "1)", "(1)", "1.1", etc.
+    numbered_patterns = [
+        r'^\d+\.',  # 1.
+        r'^\d+\)',  # 1)
+        r'^\(\d+\)',  # (1)
+        r'^\d+\.\d+',  # 1.1
+        r'^[a-zA-Z]\.',  # a., A.
+        r'^[a-zA-Z]\)',  # a), A)
+    ]
+    
+    return any(re.match(pattern, text_stripped) for pattern in numbered_patterns)
+
+def should_start_new_paragraph_enhanced(line_data, current_paragraph):
+    """Enhanced paragraph break detection with list and structure awareness"""
+    if not current_paragraph:
+        return False
+    
+    last_line = current_paragraph[-1]
+    text = line_data['text']
+    
+    # Always break for numbered items
+    if detect_numbered_item(text):
+        return True
+    
+    # Always break for list items
+    if detect_list_item(text):
+        return True
+    
+    # Use existing logic for other cases
+    return should_start_new_paragraph(line_data, current_paragraph)
 
 def extract_formatted_lines(chars):
     """Extract lines with formatting information from character data"""
@@ -307,11 +425,11 @@ def extract_text_with_pymupdf(pdf_path):
         return None
 
 def create_word_document(structured_content, output_path):
-    """Create professionally formatted Word document with advanced formatting preservation"""
+    """Create professionally formatted Word document with tables and structured content"""
     try:
         doc = Document()
         
-        # Set document margins and page layout to match typical resume format
+        # Set document margins for better content display
         section = doc.sections[0]
         section.page_height = Inches(11)
         section.page_width = Inches(8.5)
@@ -323,26 +441,23 @@ def create_word_document(structured_content, output_path):
         # Configure styles
         configure_document_styles(doc)
         
-        # Add content with advanced formatting
+        # Add content with advanced formatting and structure
         for item in structured_content:
-            if not item['text'].strip():
-                continue
-                
-            clean_text = item['text'].strip()
-            clean_text = ' '.join(clean_text.split())  # Remove extra whitespace
-            
-            if len(clean_text) < 3:  # Skip very short fragments
-                continue
-            
-            formatting = item.get('formatting', {})
-            
-            if item['type'] == 'heading':
-                create_formatted_heading(doc, clean_text, item.get('level', 2), formatting)
-            else:
-                create_formatted_paragraph(doc, clean_text, formatting)
+            if item['type'] == 'table':
+                create_word_table(doc, item['data'])
+            elif item['type'] == 'heading':
+                if item['text'].strip():
+                    create_formatted_heading(doc, item['text'].strip(), item.get('level', 2), item.get('formatting', {}))
+            elif item['type'] == 'numbered_item':
+                create_numbered_item(doc, item['text'].strip(), item.get('formatting', {}))
+            elif item['type'] == 'list_item':
+                create_list_item(doc, item['text'].strip(), item.get('formatting', {}))
+            else:  # regular paragraph
+                if item['text'].strip() and len(item['text'].strip()) > 3:
+                    create_formatted_paragraph(doc, item['text'].strip(), item.get('formatting', {}))
         
         # Ensure we have content
-        if len(doc.paragraphs) == 0:
+        if len(doc.paragraphs) == 0 and len(doc.tables) == 0:
             doc.add_paragraph("No text content could be extracted from the PDF.")
         
         # Save the document
@@ -351,13 +466,68 @@ def create_word_document(structured_content, output_path):
         # Count elements
         heading_count = len([item for item in structured_content if item['type'] == 'heading'])
         para_count = len([item for item in structured_content if item['type'] == 'paragraph'])
-        print(f"Word document created with {len(doc.paragraphs)} elements ({heading_count} headings, {para_count} paragraphs)", file=sys.stderr)
+        list_count = len([item for item in structured_content if item['type'] in ['numbered_item', 'list_item']])
+        table_count = len([item for item in structured_content if item['type'] == 'table'])
+        
+        print(f"Word document created with {len(doc.paragraphs)} paragraphs, {table_count} tables, {heading_count} headings, {list_count} list items", file=sys.stderr)
         return True
         
     except Exception as e:
         print(f"Word document creation failed: {e}", file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
         return False
+
+def create_word_table(doc, table_data):
+    """Create a properly formatted table in Word"""
+    if not table_data or len(table_data) < 1:
+        return
+    
+    # Create table with appropriate dimensions
+    table = doc.add_table(rows=len(table_data), cols=len(table_data[0]))
+    table.style = 'Table Grid'
+    
+    # Fill table data
+    for row_idx, row_data in enumerate(table_data):
+        for col_idx, cell_data in enumerate(row_data):
+            if col_idx < len(table.rows[row_idx].cells):
+                cell = table.rows[row_idx].cells[col_idx]
+                cell.text = str(cell_data) if cell_data else ""
+                
+                # Format header row
+                if row_idx == 0:
+                    for paragraph in cell.paragraphs:
+                        for run in paragraph.runs:
+                            run.bold = True
+    
+    # Add spacing after table
+    doc.add_paragraph()
+
+def create_numbered_item(doc, text, formatting):
+    """Create a numbered list item"""
+    para = doc.add_paragraph(text)
+    para.style = 'List Number'
+    
+    # Apply formatting
+    for run in para.runs:
+        run.font.name = 'Calibri'
+        run.font.size = Pt(11)
+        if formatting.get('is_bold', False):
+            run.bold = True
+
+def create_list_item(doc, text, formatting):
+    """Create a bulleted list item"""
+    # Remove bullet character if it exists
+    clean_text = text.lstrip('•▪▫◦‣⁃-* ').strip()
+    
+    para = doc.add_paragraph(clean_text)
+    para.style = 'List Bullet'
+    
+    # Apply formatting
+    for run in para.runs:
+        run.font.name = 'Calibri'
+        run.font.size = Pt(11)
+        if formatting.get('is_bold', False):
+            run.bold = True
 
 def configure_document_styles(doc):
     """Configure document styles for professional appearance"""
