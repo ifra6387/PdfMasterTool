@@ -16,6 +16,7 @@ import LoginStandalone from "@/pages/login-standalone";
 import SignUpStandalone from "@/pages/signup-standalone";
 import Dashboard from "@/pages/dashboard";
 import { AuthGuard } from "@/components/auth-guard";
+import { Redirect } from "@/components/redirect";
 
 function Router() {
   return (
@@ -32,13 +33,7 @@ function Router() {
       <Route path="/download/:token" component={Download} />
       
       <Route path="/signin" component={LoginStandalone} />
-      <Route path="/login" component={() => { 
-        // Redirect /login to /signin
-        if (typeof window !== 'undefined') {
-          window.location.replace('/signin');
-        }
-        return null;
-      }} />
+      <Route path="/login" component={() => <Redirect to="/signin" />} />
       <Route path="/signup" component={SignUpStandalone} />
       <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
