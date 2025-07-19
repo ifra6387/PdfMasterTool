@@ -70,9 +70,9 @@ app.use((req, res, next) => {
   app.use('/tools', express.static(path.join(baseDir, 'tools')));
   app.use(express.static(baseDir));
 
-  // Serve main pages
+  // No main page - serve 404 for root
   app.get('/', (req, res) => {
-    res.sendFile(path.join(baseDir, 'index.html'));
+    res.status(404).send('No main page');
   });
 
   // Handle tool routes

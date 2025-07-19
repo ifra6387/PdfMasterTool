@@ -9,13 +9,13 @@ This is a professional-grade, full-stack PDF utility web application built with 
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
-- **MINIMAL: Simple Tool List Interface**: Removed dashboard and created basic tool list per user request
-  - **Bare Minimum**: Main page (index.html) is now just a simple HTML list of tools
-  - **No Styling**: Removed all Tailwind CSS, gradients, and fancy design elements
-  - **Direct Links**: Simple unordered list with links to each tool
+- **DELETED: Main Page Removed**: Completely deleted index.html per user request
+  - **No Main Page**: Root URL (/) now returns 404 "No main page"
+  - **Tools Only**: Only individual tool pages remain in /tools/ directory
+  - **Direct Tool Access**: Users must navigate directly to /tools/[tool-name].html
   - **7 Tools Available**: pdf-to-word, word-to-pdf, pdf-to-excel, pdf-to-jpg, merge, split, compress
-  - **Pure HTML**: No JavaScript, no frameworks, just basic HTML structure
-  - **User Request Fulfilled**: Deleted dashboard as requested for simplest possible interface
+  - **Minimal Structure**: No landing page, no dashboard, just tool pages
+  - **User Request Fulfilled**: Deleted main page completely as requested
 - **BREAKTHROUGH: Google OAuth Authentication Integration**: Complete OAuth login system with Supabase integration and session handling
   - **URL Token Processing**: Automatically processes #access_token and #refresh_token from OAuth redirect URL
   - **Session Management**: Stores and restores Supabase sessions with 24-hour localStorage persistence
