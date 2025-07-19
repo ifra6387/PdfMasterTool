@@ -10,6 +10,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { editPDF } from '@/utils/pdf-utils-v2';
 
+// Global PDF.js configuration
+declare global {
+  interface Window {
+    pdfjsLib: any;
+  }
+}
+
 interface EditOperation {
   id: string;
   type: 'text' | 'rectangle' | 'circle' | 'line' | 'image' | 'freehand' | 'eraser' | 'highlight';
@@ -140,19 +147,29 @@ export default function EditPdf() {
 
   const initializePdfJs = async () => {
     // Check if PDF.js is already loaded
-    if ((window as any).pdfjsLib) {
-      return (window as any).pdfjsLib;
+    if (window.pdfjsLib) {
+      console.log('PDF.js already loaded');
+      return window.pdfjsLib;
     }
+
+    console.log('Initializing PDF.js...');
 
     // Try multiple CDN sources for reliability
     const cdnSources = [
       {
+        name: 'CDNJS',
         lib: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
         worker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
       },
       {
+        name: 'UNPKG',
         lib: 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js',
         worker: 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
+      },
+      {
+        name: 'JSDelivr',
+        lib: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+        worker: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
       }
     ];
 
@@ -160,43 +177,68 @@ export default function EditPdf() {
 
     for (const source of cdnSources) {
       try {
+        console.log(`Trying to load PDF.js from ${source.name}...`);
+        
         // Load PDF.js from CDN
         const script = document.createElement('script');
+        script.crossOrigin = 'anonymous';
         script.src = source.lib;
         document.head.appendChild(script);
         
         await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = reject;
-          // Timeout after 10 seconds
-          setTimeout(() => reject(new Error('Script load timeout')), 10000);
+          script.onload = () => {
+            console.log(`Successfully loaded PDF.js from ${source.name}`);
+            resolve(true);
+          };
+          script.onerror = (error) => {
+            console.error(`Failed to load script from ${source.name}:`, error);
+            reject(error);
+          };
+          // Timeout after 15 seconds
+          setTimeout(() => reject(new Error('Script load timeout')), 15000);
         });
 
-        // Set up worker
-        const pdfjsLib = (window as any).pdfjsLib;
-        if (pdfjsLib) {
-          pdfjsLib.GlobalWorkerOptions.workerSrc = source.worker;
+        // Wait a moment for the library to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Check if PDF.js is available
+        const pdfjsLib = window.pdfjsLib;
+        if (pdfjsLib && typeof pdfjsLib.getDocument === 'function') {
+          console.log('PDF.js library is available');
           
-          // Test if the library works
+          // Set up worker
+          pdfjsLib.GlobalWorkerOptions.workerSrc = source.worker;
+          console.log(`Worker configured: ${source.worker}`);
+          
+          // Test the library with a simple operation
           try {
-            await new Promise((resolve, reject) => {
-              const testDocument = pdfjsLib.getDocument({ data: new Uint8Array([]) });
-              // This should fail but not crash
-              testDocument.promise.then(() => reject(new Error('Unexpected success'))).catch(() => resolve(true));
-              setTimeout(() => resolve(true), 1000);
-            });
+            console.log('Testing PDF.js functionality...');
+            // Create a minimal test to verify the library works
+            const testData = new Uint8Array([37, 80, 68, 70]); // "%PDF" header
+            const loadingTask = pdfjsLib.getDocument({ data: testData });
             
+            // This should fail but not crash - we just want to test the API
+            try {
+              await loadingTask.promise;
+            } catch (testError) {
+              // Expected to fail with invalid PDF, but the API should work
+              console.log('PDF.js API test completed (expected failure)');
+            }
+            
+            console.log('PDF.js initialized successfully');
             return pdfjsLib;
           } catch (testError) {
-            // Library loaded but may not be working correctly
+            console.warn('PDF.js test failed, but library seems loaded:', testError);
+            // Still return the library as it might work for real PDFs
             return pdfjsLib;
           }
         } else {
           throw new Error('PDF.js library not found after loading');
         }
       } catch (error) {
-        console.warn(`Failed to load PDF.js from ${source.lib}:`, error);
+        console.error(`Failed to load PDF.js from ${source.name}:`, error);
         lastError = error;
+        
         // Remove failed script
         const scripts = document.querySelectorAll(`script[src="${source.lib}"]`);
         scripts.forEach(s => s.remove());
@@ -206,27 +248,49 @@ export default function EditPdf() {
 
     // If all CDN sources failed, throw the last error
     console.error('All PDF.js CDN sources failed:', lastError);
-    throw new Error('Failed to initialize PDF viewer. Please check your internet connection and refresh the page.');
+    throw new Error('Failed to initialize PDF viewer. Please refresh the page and try again.');
   };
 
   const loadPdfPages = async (file: File) => {
+    console.log('Starting PDF load process for:', file.name, 'Size:', file.size);
+    
     try {
       // Initialize PDF.js
+      console.log('Initializing PDF.js...');
       const pdfjsLib = await initializePdfJs();
+      console.log('PDF.js initialized successfully');
       
       // Read file as array buffer
+      console.log('Reading file as array buffer...');
       const arrayBuffer = await file.arrayBuffer();
       const typedArray = new Uint8Array(arrayBuffer);
+      console.log('File read successfully, size:', typedArray.length, 'bytes');
+      
+      // Check if it's a valid PDF by looking at the header
+      const header = new TextDecoder().decode(typedArray.slice(0, 4));
+      if (header !== '%PDF') {
+        throw new Error('Invalid PDF: File does not start with %PDF header');
+      }
+      console.log('PDF header validation passed');
       
       // Load PDF document
+      console.log('Loading PDF document...');
       const loadingTask = pdfjsLib.getDocument({
         data: typedArray,
-        verbosity: 0, // Reduce console output
+        verbosity: 1, // Enable some logging for debugging
         disableStream: true,
         disableAutoFetch: true,
+        disableRange: true,
+        useSystemFonts: false
       });
       
+      // Add progress monitoring
+      loadingTask.onProgress = (progress: any) => {
+        console.log('PDF loading progress:', progress);
+      };
+      
       const pdf = await loadingTask.promise;
+      console.log('PDF document loaded successfully, pages:', pdf.numPages);
       
       if (!pdf || pdf.numPages === 0) {
         throw new Error('Invalid PDF: No pages found');
@@ -235,15 +299,19 @@ export default function EditPdf() {
       setTotalPages(pdf.numPages);
       
       // Render all pages
+      console.log('Starting page rendering...');
       const pages: string[] = [];
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         try {
+          console.log(`Rendering page ${pageNum}...`);
           const page = await pdf.getPage(pageNum);
           const viewport = page.getViewport({ scale: 1.5 });
           
+          console.log(`Page ${pageNum} viewport:`, viewport.width, 'x', viewport.height);
+          
           // Create canvas for rendering
           const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
+          const context = canvas.getContext('2d', { alpha: false });
           
           if (!context) {
             throw new Error('Failed to get canvas context');
@@ -251,18 +319,25 @@ export default function EditPdf() {
           
           canvas.height = viewport.height;
           canvas.width = viewport.width;
+          
+          // Set white background
+          context.fillStyle = 'white';
+          context.fillRect(0, 0, canvas.width, canvas.height);
 
           // Render page to canvas
           const renderContext = {
             canvasContext: context,
             viewport: viewport,
-            enableWebGL: false
+            enableWebGL: false,
+            background: 'white'
           };
 
+          console.log(`Starting render for page ${pageNum}...`);
           await page.render(renderContext).promise;
+          console.log(`Page ${pageNum} rendered successfully`);
           
           // Convert to data URL
-          const dataUrl = canvas.toDataURL('image/png', 0.9);
+          const dataUrl = canvas.toDataURL('image/png', 0.95);
           pages.push(dataUrl);
           
           // Clean up page
@@ -274,16 +349,20 @@ export default function EditPdf() {
           canvas.width = 595;
           canvas.height = 842;
           const ctx = canvas.getContext('2d')!;
-          ctx.fillStyle = '#f5f5f5';
+          ctx.fillStyle = '#f8f9fa';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = '#666';
-          ctx.font = '16px Arial';
+          ctx.fillStyle = '#dc3545';
+          ctx.font = 'bold 18px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText(`Error loading page ${pageNum}`, canvas.width / 2, canvas.height / 2);
+          ctx.fillText(`Failed to load page ${pageNum}`, canvas.width / 2, canvas.height / 2 - 20);
+          ctx.fillStyle = '#6c757d';
+          ctx.font = '14px Arial';
+          ctx.fillText('Please try a different PDF file', canvas.width / 2, canvas.height / 2 + 20);
           pages.push(canvas.toDataURL());
         }
       }
       
+      console.log('All pages processed successfully');
       setPdfPages(pages);
       setCurrentPage(0);
       
@@ -294,21 +373,37 @@ export default function EditPdf() {
       
     } catch (error: any) {
       console.error('Error loading PDF:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       
       let errorMessage = "Failed to load PDF. Please try again.";
+      let errorTitle = "Error loading PDF";
       
       if (error.name === 'PasswordException') {
+        errorTitle = "Password Protected PDF";
         errorMessage = "This PDF is password protected. Please unlock the PDF first and try again.";
       } else if (error.name === 'InvalidPDFException') {
+        errorTitle = "Invalid PDF File";
         errorMessage = "The uploaded file is not a valid PDF. Please select a valid PDF file.";
       } else if (error.name === 'MissingPDFException') {
+        errorTitle = "Corrupted PDF";
         errorMessage = "The PDF file appears to be corrupted or incomplete.";
-      } else if (error.message?.includes('PDF.js')) {
+      } else if (error.message?.includes('PDF.js') || error.message?.includes('initialize')) {
+        errorTitle = "PDF Viewer Error";
         errorMessage = "Failed to initialize PDF viewer. Please refresh the page and try again.";
+      } else if (error.message?.includes('%PDF')) {
+        errorTitle = "Invalid File Format";
+        errorMessage = "The uploaded file is not a valid PDF document.";
+      } else if (error.message?.includes('Network')) {
+        errorTitle = "Network Error";
+        errorMessage = "Network error while loading PDF viewer. Please check your connection and try again.";
       }
       
       toast({
-        title: "Error loading PDF",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
       });
