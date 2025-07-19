@@ -126,10 +126,17 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // Get the current URL origin for Replit
+      const currentOrigin = window.location.origin;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${currentOrigin}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
 

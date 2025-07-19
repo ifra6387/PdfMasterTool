@@ -14,6 +14,7 @@ import Processing from "@/pages/processing";
 import Download from "@/pages/download";
 import LoginStandalone from "@/pages/login-standalone";
 import SignUpStandalone from "@/pages/signup-standalone";
+import OAuthCallback from "@/pages/oauth-callback";
 import ToolPlaceholder from "@/pages/tool-placeholder";
 import { AuthGuard } from "@/components/auth-guard";
 
@@ -49,6 +50,8 @@ function Router() {
       <Route path="/signin" component={LoginStandalone} />
       <Route path="/login" component={LoginStandalone} />
       <Route path="/signup" component={SignUpStandalone} />
+      <Route path="/auth/callback" component={OAuthCallback} />
+      <Route path="/__auth/handler" component={OAuthCallback} />
       
       {/* Protected dashboard route */}
       <Route path="/dashboard" component={() => <AuthGuard><Tools /></AuthGuard>} />
