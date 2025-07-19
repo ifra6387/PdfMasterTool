@@ -552,10 +552,11 @@ def main():
     try:
         if operation == "edit":
             if len(sys.argv) < 5:
-                raise ValueError("Usage: python pdf_editor.py edit <input> <output> <edits_json>")
+                raise ValueError("Usage: python pdf_editor.py edit <input> <output> <edits_file>")
             
-            edits_json = sys.argv[4]
-            edit_operations = json.loads(edits_json)
+            edits_file = sys.argv[4]
+            with open(edits_file, 'r') as f:
+                edit_operations = json.load(f)
             
             result = edit_pdf_comprehensive(input_path, output_path, edit_operations)
             print(json.dumps(result))

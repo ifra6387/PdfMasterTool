@@ -1500,9 +1500,12 @@ app.post('/api/convert/edit-pdf', editPdfUpload.single('file'), async (req, res)
     
     console.log(`Editing PDF: ${req.file.originalname} with ${operations.length} operations`);
     
+    // Write edit operations to a temporary JSON file to avoid E2BIG error
+    const tempOperationsPath = path.join(path.dirname(req.file.path), `operations_${Date.now()}.json`);
+    fs.writeFileSync(tempOperationsPath, JSON.stringify(operations, null, 2));
+    
     const result = await new Promise<string>((resolve, reject) => {
-      const editOperationsJson = JSON.stringify(operations);
-      const args = [pythonScript, 'edit', tempInputPath, outputPath, editOperationsJson];
+      const args = [pythonScript, 'edit', tempInputPath, outputPath, tempOperationsPath];
       
       const python = spawn(pythonPath, args, {
         stdio: ['pipe', 'pipe', 'pipe']
@@ -1556,6 +1559,7 @@ app.post('/api/convert/edit-pdf', editPdfUpload.single('file'), async (req, res)
       try {
         fs.unlinkSync(req.file!.path);
         fs.unlinkSync(tempInputPath);
+        fs.unlinkSync(tempOperationsPath);
         fs.unlinkSync(outputPath);
       } catch (err) {
         console.error('Cleanup error:', err);
@@ -1564,6 +1568,14 @@ app.post('/api/convert/edit-pdf', editPdfUpload.single('file'), async (req, res)
 
   } catch (error: any) {
     console.error('PDF editing error:', error);
+    // Clean up temp files in case of error
+    try {
+      if (tempOperationsPath && fs.existsSync(tempOperationsPath)) {
+        fs.unlinkSync(tempOperationsPath);
+      }
+    } catch (cleanupErr) {
+      console.error('Error cleanup failed:', cleanupErr);
+    }
     res.status(500).json({ message: error.message || "Failed to edit PDF. Please try again." });
   }
 });
