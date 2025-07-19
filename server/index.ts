@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
+import fs from "fs";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { log } from "./vite";
 import { initializeFileCleanup } from "./services/file-cleanup";
 
 
@@ -63,14 +65,31 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  // Serve static files for HTML-based website
+  const baseDir = path.dirname(import.meta.dirname);
+  app.use('/tools', express.static(path.join(baseDir, 'tools')));
+  app.use(express.static(baseDir));
+
+  // Serve main pages
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(baseDir, 'index.html'));
+  });
+
+  app.get('/dashboard.html', (req, res) => {
+    res.sendFile(path.join(baseDir, 'dashboard.html'));
+  });
+
+  // Handle tool routes
+  app.get('/tools/:tool', (req, res) => {
+    const toolName = req.params.tool;
+    const toolPath = path.join(baseDir, 'tools', `${toolName}.html`);
+    
+    if (fs.existsSync(toolPath)) {
+      res.sendFile(toolPath);
+    } else {
+      res.status(404).send('Tool not found');
+    }
+  });
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
