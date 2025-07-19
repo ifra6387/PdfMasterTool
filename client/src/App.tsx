@@ -12,6 +12,7 @@ import Signup from "@/pages/signup";
 import Tool from "@/pages/tool";
 import Processing from "@/pages/processing";
 import Download from "@/pages/download";
+import AuthDemo from "@/pages/auth-demo";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/tool/:toolName" component={Tool} />
       <Route path="/processing/:fileId" component={Processing} />
       <Route path="/download/:token" component={Download} />
+      <Route path="/auth-demo" component={AuthDemo} />
       <Route component={NotFound} />
     </Switch>
   );

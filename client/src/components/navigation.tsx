@@ -39,6 +39,11 @@ export function Navigation() {
                 Tools
               </span>
             </Link>
+            <Link href="/auth-demo">
+              <span className="text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer">
+                Supabase Auth
+              </span>
+            </Link>
           </div>
 
           {/* User Actions */}
