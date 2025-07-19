@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { signOut, getCurrentUser, type AuthUser } from '@/lib/supabase-auth';
 import { useLocation } from 'wouter';
 import { 
   FileText, 
@@ -28,7 +27,8 @@ import {
   Droplets,
   Hash,
   Eye,
-  Presentation
+  Presentation,
+  ArrowRight
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -212,68 +212,12 @@ const toolCategories = [
 ];
 
 export default function Tools() {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
   const [, setLocation] = useLocation();
   const { theme, toggleTheme } = useTheme();
-  
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const currentUser = await getCurrentUser();
-        if (currentUser) {
-          setUser(currentUser);
-          setLoading(false);
-        } else {
-          // No user found, redirect to home page
-          window.location.replace('/');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        window.location.replace('/');
-      }
-    }
-    
-    checkAuth();
-  }, [setLocation]);
 
-  const handleSignOut = async () => {
-    try {
-      console.log('Signing out...');
-      await signOut();
-      setUser(null);
-      setLocation('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-      setLocation('/');
-    }
+  const handleBackToHome = () => {
+    setLocation('/');
   };
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-            Please sign in to access PDF tools
-          </h1>
-          <Button onClick={() => setLocation('/signin')}>
-            Go to Sign In
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   const handleToolClick = (toolId: string) => {
     setLocation(`/tool/${toolId}`);
@@ -293,7 +237,7 @@ export default function Tools() {
                 I Love Making PDF
               </h1>
               <p className="text-sm text-slate-600 dark:text-slate-300">
-                Welcome, {user?.email}
+                Professional PDF Tools
               </p>
             </div>
           </div>
@@ -312,23 +256,15 @@ export default function Tools() {
               )}
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="rounded-full">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-semibold">
-                      {user?.email?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              onClick={handleBackToHome}
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+            >
+              <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+              Home
+            </Button>
           </div>
         </div>
       </header>
@@ -430,7 +366,7 @@ export default function Tools() {
                 <div className="flex items-center space-x-4 mb-6 md:mb-0">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
                     <span className="text-white text-xl font-heading font-bold">
-                      {user?.email?.charAt(0).toUpperCase()}
+                      U
                     </span>
                   </div>
                   <div>
@@ -438,7 +374,7 @@ export default function Tools() {
                       Account Information
                     </h3>
                     <p className="text-slate-600 dark:text-slate-400">
-                      {user?.email}
+                      Professional User
                     </p>
                   </div>
                 </div>

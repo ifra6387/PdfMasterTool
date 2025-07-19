@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { AuthModal } from "@/components/auth-modal";
-import { signInWithGoogle, processOAuthTokens, getCurrentUser, type AuthUser } from '@/lib/supabase-auth';
 import { useLocation } from 'wouter';
 import { 
   FileText, 
@@ -34,77 +32,13 @@ import {
 import { useTheme } from "@/components/theme-provider";
 
 export default function Home() {
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
   const [, setLocation] = useLocation();
   const { theme, toggleTheme } = useTheme();
   
-  useEffect(() => {
-    async function initAuth() {
-      try {
-        // First check for OAuth tokens in URL
-        const oauthUser = await processOAuthTokens();
-        if (oauthUser) {
-          console.log('OAuth user found, redirecting to dashboard...');
-          setUser(oauthUser);
-          // Use replace instead of navigate to avoid history issues
-          window.location.replace('/dashboard');
-          return;
-        }
-        
-        // Then check for existing session
-        const currentUser = await getCurrentUser();
-        if (currentUser) {
-          console.log('Existing user session found, redirecting to dashboard...');
-          setUser(currentUser);
-          // Use replace for immediate redirect without flashing
-          window.location.replace('/dashboard');
-          return;
-        }
-        
-        setUser(null);
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    initAuth();
-  }, [setLocation]);
-  
-  const handleGoogleSignIn = async () => {
-    try {
-      console.log('Starting Google OAuth...');
-      await signInWithGoogle();
-    } catch (error) {
-      console.error('Google sign in error:', error);
-    }
+  const handleGetStarted = () => {
+    // Direct access to dashboard without authentication
+    setLocation('/dashboard');
   };
-
-  // Redirect to dashboard if already authenticated
-  if (user && !loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Redirecting to dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   const toolShowcase = [
     { name: 'Merge PDFs', icon: Merge, color: 'text-primary' },
@@ -158,15 +92,15 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button
-              onClick={handleGoogleSignIn}
+              onClick={handleGetStarted}
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-heading shadow-lg hover:shadow-xl dark:shadow-slate-900/40 transition-all duration-300 hover:scale-105"
             >
-              Sign In with Google
+              Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button
-              onClick={handleGoogleSignIn}
+              onClick={handleGetStarted}
               variant="outline"
               size="lg"
               className="px-8 py-4 text-lg font-heading border-2 border-slate-300 dark:border-slate-600 bg-white/30 dark:bg-slate-800/30 backdrop-blur-md hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 hover:scale-105 shadow-lg dark:shadow-slate-900/40"
@@ -368,11 +302,7 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={authModalOpen} 
-        onClose={() => setAuthModalOpen(false)} 
-      />
+
     </div>
   );
 }

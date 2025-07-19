@@ -16,7 +16,7 @@ import LoginStandalone from "@/pages/login-standalone";
 import SignUpStandalone from "@/pages/signup-standalone";
 import OAuthCallback from "@/pages/oauth-callback";
 import ToolPlaceholder from "@/pages/tool-placeholder";
-import { AuthGuard } from "@/components/auth-guard";
+
 
 // Import actual tool components
 import MergePDF from "@/pages/tools/merge";
@@ -53,11 +53,11 @@ function Router() {
       <Route path="/auth/callback" component={OAuthCallback} />
       <Route path="/__auth/handler" component={OAuthCallback} />
       
-      {/* Protected dashboard route */}
-      <Route path="/dashboard" component={() => <AuthGuard><Tools /></AuthGuard>} />
+      {/* Dashboard route - direct access */}
+      <Route path="/dashboard" component={Tools} />
       
-      {/* Tools also accessible at /tools (protected) */}
-      <Route path="/tools" component={() => <AuthGuard><Tools /></AuthGuard>} />
+      {/* Tools also accessible at /tools */}
+      <Route path="/tools" component={Tools} />
 
       <Route path="/processing/:fileId" component={Processing} />
       <Route path="/download/:token" component={Download} />
