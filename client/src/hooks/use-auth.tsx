@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Success",
         description: "Welcome back!",
       });
-      setLocation("/");
+      setLocation("/dashboard");
     },
     onError: (error: any) => {
       toast({
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Success",
         description: "Account created successfully!",
       });
-      setLocation("/");
+      setLocation("/dashboard");
     },
     onError: (error: any) => {
       toast({
@@ -140,14 +140,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    // Clear all authentication data
     setUser(null);
     setToken(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("supabase_session");
+    
+    // Clear query cache
     queryClient.clear();
+    
+    // Clear any cookies if they exist
+    document.cookie.split(";").forEach(function(c) { 
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+    });
+    
     toast({
       title: "Success",
       description: "Logged out successfully",
     });
+    
+    // Redirect to landing page
     setLocation("/");
   };
 

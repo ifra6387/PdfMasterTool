@@ -52,9 +52,9 @@ export default function SignUpStandalone() {
       if (authError) {
         setError(authError.message);
       } else if (data.user) {
-        setSuccess('Account created successfully! Redirecting to your tools...');
+        setSuccess('Account created successfully! Redirecting to your dashboard...');
         setTimeout(() => {
-          setLocation('/');
+          setLocation('/dashboard');
         }, 2000);
       }
     } catch (err) {

@@ -50,8 +50,8 @@ export default function LoginStandalone() {
           timestamp: Date.now()
         }));
         
-        // Redirect to home (tools) page
-        setLocation('/');
+        // Redirect to dashboard (tools) page
+        setLocation('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred during sign in');

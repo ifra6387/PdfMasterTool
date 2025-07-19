@@ -90,11 +90,30 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) return;
     
     try {
+      // Sign out from Supabase
       await supabase.auth.signOut();
+      
+      // Clear all authentication data
       localStorage.removeItem('supabase_session');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      
+      // Clear any cookies if they exist
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+      
+      // Update state
       setUser(null);
+      
+      console.log('User successfully logged out');
     } catch (error) {
       console.error('Error during logout:', error);
+      // Force clear local state even if remote logout fails
+      localStorage.removeItem('supabase_session');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      setUser(null);
     }
   };
 

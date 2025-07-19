@@ -58,14 +58,8 @@ function Router() {
       <Route path="/login" component={LoginStandalone} />
       <Route path="/signup" component={SignUpStandalone} />
       
-      {/* Dashboard redirect to tools home page */}
-      <Route path="/dashboard" component={() => {
-        const [, setLocation] = useLocation();
-        useEffect(() => {
-          setLocation('/', { replace: true });
-        }, [setLocation]);
-        return null;
-      }} />
+      {/* Dashboard route - redirect to tools */}
+      <Route path="/dashboard" component={Tools} />
       
       {/* Actual tool routes */}
       <Route path="/tool/merge" component={MergePDF} />
