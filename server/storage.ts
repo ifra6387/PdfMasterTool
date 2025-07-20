@@ -1,9 +1,11 @@
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, lt } from "drizzle-orm";
-import { neon } from "@neondatabase/serverless";
+import postgres from "postgres";
 import { users, files, processedFiles, type User, type InsertUser, type File, type InsertFile, type ProcessedFile, type InsertProcessedFile } from "@shared/schema";
 
-const sql = neon(process.env.DATABASE_URL!);
+// Use local PostgreSQL database
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/postgres";
+const sql = postgres(connectionString);
 const db = drizzle(sql);
 
 export interface IStorage {

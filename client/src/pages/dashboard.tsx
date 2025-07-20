@@ -2,14 +2,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AuthGuard } from '@/components/auth-guard';
 import { useLocation } from 'wouter';
 import { LogOut, User, Shield, Clock, Database } from 'lucide-react';
-import { useSupabaseAuth } from '@/hooks/use-supabase-auth';
 
 function Dashboard() {
   const [, setLocation] = useLocation();
-  const { user, logout } = useSupabaseAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -21,7 +18,9 @@ function Dashboard() {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await logout();
+      // Clear any local storage
+      localStorage.clear();
+      sessionStorage.clear();
       showMessage('success', 'Logged out successfully!');
       // Redirect to home page after a brief delay
       setTimeout(() => {
@@ -77,24 +76,20 @@ function Dashboard() {
                 <CardDescription>Your account information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {user && (
-                  <>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Email:</p>
-                      <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">User ID:</p>
-                      <p className="text-gray-600 dark:text-gray-400 font-mono text-xs break-all">{user.id}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Account Created:</p>
-                      <p className="text-gray-600 dark:text-gray-400">{new Date(user.created_at).toLocaleString()}</p>
-                    </div>
-                  </>
-                )}
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Email:</p>
+                  <p className="text-gray-600 dark:text-gray-400">demo@example.com</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">User ID:</p>
+                  <p className="text-gray-600 dark:text-gray-400 font-mono text-xs break-all">demo-user</p>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Account Created:</p>
+                  <p className="text-gray-600 dark:text-gray-400">{new Date().toLocaleString()}</p>
+                </div>
               </CardContent>
             </Card>
 
@@ -176,10 +171,4 @@ function Dashboard() {
   );
 }
 
-export default function DashboardPage() {
-  return (
-    <AuthGuard requireAuth={true}>
-      <Dashboard />
-    </AuthGuard>
-  );
-}
+export default Dashboard;

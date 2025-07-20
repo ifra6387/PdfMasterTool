@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "./lib/queryClient";
 import { ThemeProvider } from "./components/theme-provider";
-import { AuthProvider } from "./hooks/use-auth";
+// Note: Removed Supabase authentication - now using direct access
 
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
@@ -14,7 +14,6 @@ import Processing from "@/pages/processing";
 import Download from "@/pages/download";
 import LoginStandalone from "@/pages/login-standalone";
 import SignUpStandalone from "@/pages/signup-standalone";
-import OAuthCallback from "@/pages/oauth-callback";
 import ToolPlaceholder from "@/pages/tool-placeholder";
 
 
@@ -50,8 +49,6 @@ function Router() {
       <Route path="/signin" component={LoginStandalone} />
       <Route path="/login" component={LoginStandalone} />
       <Route path="/signup" component={SignUpStandalone} />
-      <Route path="/auth/callback" component={OAuthCallback} />
-      <Route path="/__auth/handler" component={OAuthCallback} />
       
       {/* Dashboard route - direct access */}
       <Route path="/dashboard" component={Tools} />
@@ -114,12 +111,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
