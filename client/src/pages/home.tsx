@@ -270,9 +270,9 @@ export default function Home() {
             <div>
               <h4 className="font-semibold font-heading mb-4">Company</h4>
               <ul className="space-y-2 text-slate-300">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
+                <li><a href="/about.html" target="_blank" className="hover:text-white transition-colors">About Us</a></li>
                 <li><a href="/contact.html" target="_blank" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+                <li><a href="/careers.html" target="_blank" className="hover:text-white transition-colors">Careers</a></li>
               </ul>
             </div>
 
@@ -280,9 +280,9 @@ export default function Home() {
             <div>
               <h4 className="font-semibold font-heading mb-4">Legal</h4>
               <ul className="space-y-2 text-slate-300">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
+                <li><a href="/privacy.html" target="_blank" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="/terms.html" target="_blank" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="/cookies.html" target="_blank" className="hover:text-white transition-colors">Cookie Policy</a></li>
               </ul>
             </div>
           </div>
