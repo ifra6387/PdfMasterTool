@@ -1,78 +1,42 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AuthGuard } from '@/components/auth-guard';
-import { useLocation } from 'wouter';
-import { LogOut, User, Shield, Clock, Database } from 'lucide-react';
-import { useSupabaseAuth } from '@/hooks/use-supabase-auth';
-
 function Dashboard() {
-  const [, setLocation] = useLocation();
-  const { user, logout } = useSupabaseAuth();
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  const showMessage = (type: 'success' | 'error', text: string) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage(null), 3000);
-  };
-
-  const handleLogout = async () => {
-    setLoading(true);
-    try {
-      await logout();
-      showMessage('success', 'Logged out successfully!');
-      // Redirect to home page after a brief delay
-      setTimeout(() => {
-        setLocation('/');
-      }, 1000);
-    } catch (error) {
-      showMessage('error', 'An unexpected error occurred during logout');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto p-6">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  Welcome to your secure dashboard
+                <h1 className="text-3xl font-bold text-gray-900">PDF Tools Dashboard</h1>
+                <p className="text-gray-600 mt-1">
+                  Select a tool to get started
                 </p>
-              </div>
-              <Button 
-                onClick={handleLogout} 
-                disabled={loading}
-                variant="outline"
-                className="flex items-center space-x-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>{loading ? 'Logging out...' : 'Logout'}</span>
-              </Button>
+          </div>
+          
+          {/* Simple Tool Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-semibold mb-2 text-blue-600">Merge PDF</h3>
+              <p className="text-gray-600">Combine multiple PDF files into one</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-semibold mb-2 text-blue-600">Split PDF</h3>
+              <p className="text-gray-600">Split PDF into separate files</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-semibold mb-2 text-blue-600">Compress PDF</h3>
+              <p className="text-gray-600">Reduce PDF file size</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-semibold mb-2 text-blue-600">PDF to Word</h3>
+              <p className="text-gray-600">Convert PDF to Word document</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-semibold mb-2 text-blue-600">Word to PDF</h3>
+              <p className="text-gray-600">Convert Word to PDF</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-semibold mb-2 text-blue-600">Protect PDF</h3>
+              <p className="text-gray-600">Add password protection</p>
             </div>
           </div>
-
-          {message && (
-            <Alert className={`mb-6 ${message.type === 'error' ? 'border-red-200 bg-red-50 dark:bg-red-900/20' : 'border-green-200 bg-green-50 dark:bg-green-900/20'}`}>
-              <AlertDescription className={message.type === 'error' ? 'text-red-800 dark:text-red-200' : 'text-green-800 dark:text-green-200'}>
-                {message.text}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* User Info Card */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-blue-500" />
-                  <span>User Profile</span>
                 </CardTitle>
                 <CardDescription>Your account information</CardDescription>
               </CardHeader>
@@ -165,11 +129,12 @@ function Dashboard() {
             </Card>
           </div>
 
-          {/* Footer */}
-          <div className="mt-12 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              This dashboard is protected and requires authentication
-            </p>
+          {/* Simple Footer */}
+          <div className="mt-12 text-center text-sm text-gray-500">
+            <a href="/about.html" className="hover:text-blue-600">About</a> · 
+            <a href="/terms.html" className="hover:text-blue-600">Terms</a> · 
+            <a href="/privacy.html" className="hover:text-blue-600">Privacy</a> · 
+            <a href="/contact.html" className="hover:text-blue-600">Contact</a>
           </div>
         </div>
       </div>
