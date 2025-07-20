@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthGuard } from '@/components/auth-guard';
+import { SharedFooter } from '@/components/shared-footer';
 import { useLocation } from 'wouter';
 import { LogOut, User, Shield, Clock, Database } from 'lucide-react';
 import { useSupabaseAuth } from '@/hooks/use-supabase-auth';
@@ -35,8 +36,8 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+        <div className="max-w-4xl mx-auto p-6 flex-grow">
           {/* Header */}
           <div className="mb-8">
             <div className="flex justify-between items-center">
@@ -165,13 +166,10 @@ function Dashboard() {
             </Card>
           </div>
 
-          {/* Footer */}
-          <div className="mt-12 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              This dashboard is protected and requires authentication
-            </p>
-          </div>
         </div>
+        
+        {/* Shared Footer Component */}
+        <SharedFooter />
       </div>
   );
 }
