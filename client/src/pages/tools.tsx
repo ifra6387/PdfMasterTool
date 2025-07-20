@@ -429,17 +429,8 @@ export default function Tools() {
 
       {/* Footer Section */}
       <footer className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-t border-slate-200/50 dark:border-slate-700/50 shadow-sm dark:shadow-slate-900/20">
-        <div className="max-w-7xl mx-auto px-4 py-6 text-center">
-          <div className="flex flex-wrap justify-center items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-            <a href="#" className="hover:text-primary dark:hover:text-blue-400 transition-colors duration-300 font-medium">About</a>
-            <span className="text-slate-400 dark:text-slate-500">·</span>
-            <a href="#" className="hover:text-primary dark:hover:text-blue-400 transition-colors duration-300 font-medium">Terms</a>
-            <span className="text-slate-400 dark:text-slate-500">·</span>
-            <a href="#" className="hover:text-primary dark:hover:text-blue-400 transition-colors duration-300 font-medium">Privacy</a>
-            <span className="text-slate-400 dark:text-slate-500">·</span>
-            <a href="#" className="hover:text-primary dark:hover:text-blue-400 transition-colors duration-300 font-medium">Contact</a>
-          </div>
-          <div className="mt-2 text-xs text-slate-500 dark:text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 py-4 text-center">
+          <div className="text-xs text-slate-500 dark:text-slate-500">
             © 2025 I Love Making PDF. All rights reserved.
           </div>
         </div>
