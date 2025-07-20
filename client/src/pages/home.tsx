@@ -89,8 +89,8 @@ export default function Home() {
             The most complete PDF toolkit. Merge, split, compress, convert, and secure your documents — all for free.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          {/* CTA Button */}
+          <div className="flex justify-center mb-12">
             <Button
               onClick={handleGetStarted}
               size="lg"
@@ -98,14 +98,6 @@ export default function Home() {
             >
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button
-              onClick={handleGetStarted}
-              variant="outline"
-              size="lg"
-              className="px-8 py-4 text-lg font-heading border-2 border-slate-300 dark:border-slate-600 bg-white/30 dark:bg-slate-800/30 backdrop-blur-md hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 hover:scale-105 shadow-lg dark:shadow-slate-900/40"
-            >
-              Try Demo
             </Button>
           </div>
         </div>
