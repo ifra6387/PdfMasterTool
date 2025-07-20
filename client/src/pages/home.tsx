@@ -271,7 +271,7 @@ export default function Home() {
               <h4 className="font-semibold font-heading mb-4">Company</h4>
               <ul className="space-y-2 text-slate-300">
                 <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="/contact.html" target="_blank" className="hover:text-white transition-colors">Contact</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
               </ul>
             </div>
