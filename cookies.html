@@ -4,23 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cookie Policy - I Love Making PDF</title>
-    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        accent: '#10b981',
+                    },
+                    fontFamily: {
+                        heading: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="logo">I Love Making PDF</a>
-            <a href="/" class="nav-home">Home</a>
-        </div>
-    </nav>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/50">
+        <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center">
+                            <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold font-heading text-slate-900">I Love Making PDF</span>
+                    </a>
+                </div>
 
-    <div class="container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">Cookie Policy</h1>
-            <p class="page-subtitle">How we use cookies and similar technologies</p>
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="/" class="text-slate-600 hover:text-primary transition-colors">Home</a>
+                    <a href="/about.html" class="text-slate-600 hover:text-primary transition-colors">About Us</a>
+                    <a href="/careers.html" class="text-slate-600 hover:text-primary transition-colors">Careers</a>
+                    <a href="/contact.html" class="text-slate-600 hover:text-primary transition-colors">Contact</a>
+                    <a href="/dashboard" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">Get Started Free</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-slate-600 hover:text-primary">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <div class="flex flex-col space-y-2">
+                    <a href="/" class="text-slate-600 hover:text-primary transition-colors py-2">Home</a>
+                    <a href="/about.html" class="text-slate-600 hover:text-primary transition-colors py-2">About Us</a>
+                    <a href="/careers.html" class="text-slate-600 hover:text-primary transition-colors py-2">Careers</a>
+                    <a href="/contact.html" class="text-slate-600 hover:text-primary transition-colors py-2">Contact</a>
+                    <a href="/dashboard" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-center mt-2">Get Started Free</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl font-bold font-heading text-slate-900 mb-4">Cookie Policy</h1>
+            <p class="text-xl text-slate-600 max-w-2xl mx-auto">How we use cookies and similar technologies</p>
         </div>
+
+        <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12">
         
         <!-- Content -->
         <div class="content">
@@ -150,40 +208,73 @@
         </div>
         
         </div>
-    </div>
+    </main>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>Company</h4>
-                <ul>
-                    <li><a href="/about.html">About Us</a></li>
-                    <li><a href="/contact.html">Contact</a></li>
-                    <li><a href="/careers.html">Careers</a></li>
-                </ul>
+    <footer class="py-16 px-4 sm:px-6 lg:px-8 bg-slate-900 text-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8 mb-12">
+                <!-- Brand -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center mr-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold font-heading">I Love Making PDF</h3>
+                    </div>
+                    <p class="text-slate-300 mb-6 max-w-md">
+                        The most complete PDF toolkit for professionals. Transform, secure, and manage your documents with ease.
+                    </p>
+                    
+                    <!-- Social Media Icons -->
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-slate-300 hover:text-white transition-colors">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599-.262 1.793-.102 1.793-.102v-2.772c0 0-1.732.088-2.773-.599s-1.732-2.027-1.732-2.027-.599-1.029-1.378-1.378c-1.126-.793.088-.779.088-.779 1.24.088 1.891 1.274 1.891 1.274 1.102 1.891 2.906 1.345 3.616 1.029.111-.792.433-1.345.792-1.656-2.665-.301-5.466-1.332-5.466-5.93 0-1.345.467-2.427 1.236-3.29-.124-.302-.535-1.527.117-3.176 0 0 1.008-.322 3.301 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.864 1.235 1.955 1.235 3.301 0 4.611-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293s1.194-.14 1.793.102c4.769-1.587 8.207-6.085 8.207-11.387 0-6.627-5.373-12-12-12z"/></svg>
+                        </a>
+                        <a href="#" class="text-slate-300 hover:text-white transition-colors">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        </a>
+                        <a href="#" class="text-slate-300 hover:text-white transition-colors">
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h4 class="font-semibold font-heading mb-4">Company</h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li><a href="/about.html" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="/contact.html" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="/careers.html" class="hover:text-white transition-colors">Careers</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="font-semibold font-heading mb-4">Legal</h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li><a href="/privacy.html" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="/terms.html" class="hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="/cookies.html" class="hover:text-white transition-colors">Cookie Policy</a></li>
+                    </ul>
+                </div>
             </div>
-            <div class="footer-section">
-                <h4>Legal</h4>
-                <ul>
-                    <li><a href="/privacy.html">Privacy Policy</a></li>
-                    <li><a href="/terms.html">Terms of Service</a></li>
-                    <li><a href="/cookies.html">Cookie Policy</a></li>
-                </ul>
+
+            <!-- Copyright -->
+            <div class="border-t border-slate-800 pt-8 text-center text-slate-400">
+                <p>&copy; 2024 I Love Making PDF. All rights reserved.</p>
             </div>
-            <div class="footer-section">
-                <h4>Tools</h4>
-                <ul>
-                    <li><a href="/dashboard">PDF Tools</a></li>
-                    <li><a href="/dashboard">Convert PDF</a></li>
-                    <li><a href="/dashboard">Merge PDF</a></li>
-                    <li><a href="/dashboard">Split PDF</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 I Love Making PDF. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+    </script>
 </body>
 </html>
