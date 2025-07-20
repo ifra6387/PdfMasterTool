@@ -9,6 +9,7 @@ import { Upload, Download, Loader2, FileText, ArrowLeft, Type, Square, Circle, M
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { editPDF } from '@/utils/pdf-utils-v2';
+import { navigateBackToTools } from '@/utils/navigation';
 import { createPdfFallback, validatePdfStructure } from '@/utils/pdf-fallback';
 
 // Global PDF.js configuration
@@ -866,7 +867,7 @@ export default function EditPdf() {
       <div className="text-center mb-4">
         <Button 
           variant="ghost" 
-          onClick={() => setLocation('/dashboard')}
+          onClick={() => navigateBackToTools(setLocation)}
           className="flex items-center gap-2 mb-4"
         >
           <ArrowLeft className="h-4 w-4" />

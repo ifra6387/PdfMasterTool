@@ -5,6 +5,7 @@ import { Upload, Download, Loader2, FileText, Presentation, ArrowLeft } from 'lu
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { pdfToPowerPoint } from '@/utils/pdf-utils-v2';
+import { navigateBackToTools } from '@/utils/navigation';
 
 export default function PdfToPowerPoint() {
   const [file, setFile] = useState<File | null>(null);
@@ -90,7 +91,7 @@ export default function PdfToPowerPoint() {
       <div className="mb-6">
         <Button
           variant="ghost"
-          onClick={() => setLocation('/')}
+          onClick={() => navigateBackToTools(setLocation)}
           className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

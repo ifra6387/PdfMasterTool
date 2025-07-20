@@ -2,6 +2,7 @@ import React from 'react';
 import { Merge } from 'lucide-react';
 import PDFToolInterface from '@/components/pdf-tool-interface';
 import { mergePDFs } from '@/utils/pdf-utils-v2';
+import { navigateBackToTools } from '@/utils/navigation';
 
 export default function MergePDF() {
   const handleProcess = async (files: File[]): Promise<Blob> => {

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, Download, Loader2, RotateCw, ArrowLeft, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
+import { navigateBackToTools } from '@/utils/navigation';
 import { rotatePDF, removePDFPages, addPDFPages } from '@/utils/pdf-utils-v2';
 
 export default function RotatePdf() {
@@ -220,7 +221,7 @@ export default function RotatePdf() {
       <div className="text-center mb-4">
         <Button 
           variant="ghost" 
-          onClick={() => setLocation('/dashboard')}
+          onClick={() => navigateBackToTools(setLocation)}
           className="flex items-center gap-2 mb-4"
         >
           <ArrowLeft className="h-4 w-4" />

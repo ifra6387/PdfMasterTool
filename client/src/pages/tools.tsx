@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useLocation } from 'wouter';
+import { saveToolsPageUrl } from '@/utils/navigation';
 import { 
   FileText, 
   Shield, 
@@ -220,6 +221,8 @@ export default function Tools() {
   };
 
   const handleToolClick = (toolId: string) => {
+    // Save current URL for back navigation
+    saveToolsPageUrl('/dashboard');
     setLocation(`/tool/${toolId}`);
   };
 

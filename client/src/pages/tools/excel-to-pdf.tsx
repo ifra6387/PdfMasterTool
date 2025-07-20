@@ -5,6 +5,7 @@ import { Upload, Download, Loader2, FileSpreadsheet, FileText, ArrowLeft } from 
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { excelToPDF } from '@/utils/pdf-utils-v2';
+import { navigateBackToTools } from '@/utils/navigation';
 
 export default function ExcelToPdf() {
   const [file, setFile] = useState<File | null>(null);
@@ -91,7 +92,7 @@ export default function ExcelToPdf() {
       <div className="mb-6">
         <Button
           variant="ghost"
-          onClick={() => setLocation('/')}
+          onClick={() => navigateBackToTools(setLocation)}
           className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

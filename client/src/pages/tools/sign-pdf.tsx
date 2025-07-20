@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { navigateBackToTools } from '@/utils/navigation';
 import { Upload, FileText, Download, RotateCcw, ArrowLeft, Edit3, Type, PenTool, Image, MousePointer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -433,7 +434,7 @@ export default function SignPDF() {
       <div className="text-center mb-4">
         <Button 
           variant="ghost" 
-          onClick={() => setLocation('/')}
+          onClick={() => navigateBackToTools(setLocation)}
           className="flex items-center gap-2 mb-4"
         >
           <ArrowLeft className="h-4 w-4" />

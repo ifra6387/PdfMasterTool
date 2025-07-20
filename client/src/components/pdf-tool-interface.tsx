@@ -15,7 +15,8 @@ import {
   Loader2,
   ArrowLeft 
 } from 'lucide-react';
-import { Link } from 'wouter';
+import { useLocation } from 'wouter';
+import { navigateBackToTools } from '@/utils/navigation';
 
 interface FileWithPreview {
   file: File;
@@ -46,6 +47,7 @@ export default function PDFToolInterface({
   options,
   icon: Icon
 }: PDFToolInterfaceProps) {
+  const [, setLocation] = useLocation();
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -187,12 +189,14 @@ export default function PDFToolInterface({
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Tools
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigateBackToTools(setLocation)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Tools
+          </Button>
           <div className="flex items-center gap-3">
             <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-xl">
               <Icon className="w-8 h-8 text-blue-600" />
