@@ -226,50 +226,85 @@ export default function Tools() {
     setLocation(`/tool/${toolId}`);
   };
 
+  const toggleMobileMenu = () => {
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+      mobileMenu.classList.toggle('hidden');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-300">
-      {/* Header */}
-      <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm dark:shadow-slate-900/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <FileText className="h-6 w-6 text-white" />
+      {/* Header Navigation */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/50">
+        <nav className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center">
+              <a href="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-lg flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold font-heading text-slate-900">I Love Making PDF</span>
+              </a>
             </div>
-            <div>
-              <h1 className="text-xl font-bold font-heading bg-gradient-to-r from-slate-900 to-blue-900 dark:from-white dark:to-blue-100 bg-clip-text text-transparent">
-                I Love Making PDF
-              </h1>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Professional PDF Tools
-              </p>
+
+            {/* Navigation Links */}
+            <div className="hidden md:flex items-center space-x-6">
+              <a href="/" className="text-slate-600 hover:text-blue-600 transition-colors">Home</a>
+              <a href="/about.html" className="text-slate-600 hover:text-blue-600 transition-colors">About Us</a>
+              <a href="/careers.html" className="text-slate-600 hover:text-blue-600 transition-colors">Careers</a>
+              <a href="/contact.html" className="text-slate-600 hover:text-blue-600 transition-colors">Contact</a>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleTheme}
+                  className="rounded-full p-2"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-5 w-5 text-yellow-500" />
+                  ) : (
+                    <Moon className="h-5 w-5 text-slate-600" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button onClick={toggleMobileMenu} className="text-slate-600 hover:text-blue-600">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleTheme}
-              className="rounded-full p-2"
-            >
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5 text-yellow-500" />
-              ) : (
-                <Moon className="h-5 w-5 text-slate-600" />
-              )}
-            </Button>
-
-            <Button
-              onClick={handleBackToHome}
-              variant="outline"
-              size="sm"
-              className="rounded-full"
-            >
-              <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
-              Home
-            </Button>
+          {/* Mobile Menu */}
+          <div id="mobile-menu" className="hidden md:hidden pb-4">
+            <div className="flex flex-col space-y-2">
+              <a href="/" className="text-slate-600 hover:text-blue-600 transition-colors py-2">Home</a>
+              <a href="/about.html" className="text-slate-600 hover:text-blue-600 transition-colors py-2">About Us</a>
+              <a href="/careers.html" className="text-slate-600 hover:text-blue-600 transition-colors py-2">Careers</a>
+              <a href="/contact.html" className="text-slate-600 hover:text-blue-600 transition-colors py-2">Contact</a>
+              <div className="pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleTheme}
+                  className="rounded-full p-2"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-5 w-5 text-yellow-500" />
+                  ) : (
+                    <Moon className="h-5 w-5 text-slate-600" />
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+        </nav>
       </header>
 
       {/* Main Content */}
