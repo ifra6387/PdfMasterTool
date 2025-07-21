@@ -82,6 +82,9 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
+    console.log(`🚀 Server running on port ${port}`);
+    console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🌐 Access URL: http://localhost:${port}`);
     log(`serving on port ${port}`);
   });
 })();

@@ -1,10 +1,34 @@
 modules = ["nodejs-20", "web", "postgresql-16", "python-3.11", "python3"]
 run = "npm run dev"
-hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
+hidden = [".config", ".git", "generated-icon.png", "node_modules"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["freetype", "glibcLocales", "gumbo", "harfbuzz", "imagemagickBig", "jbig2dec", "lcms2", "libGL", "libGLU", "libimagequant", "libjpeg", "libjpeg_turbo", "libtiff", "libwebp", "libxcrypt", "mupdf", "openjpeg", "swig", "tcl", "tesseract", "tk", "xcbuild", "zlib"]
+packages = [
+  "freetype",
+  "glibcLocales",
+  "gumbo",
+  "harfbuzz",
+  "imagemagickBig",
+  "jbig2dec",
+  "lcms2",
+  "libGL",
+  "libGLU",
+  "libimagequant",
+  "libjpeg",
+  "libjpeg_turbo",
+  "libtiff",
+  "libwebp",
+  "libxcrypt",
+  "mupdf",
+  "openjpeg",
+  "swig",
+  "tcl",
+  "tesseract",
+  "tk",
+  "xcbuild",
+  "zlib",
+]
 
 [deployment]
 deploymentTarget = "gce"
