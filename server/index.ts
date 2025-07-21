@@ -79,41 +79,17 @@ app.use((req, res, next) => {
   console.log("Setting up static file serving...");
   console.log("Current environment:", app.get("env"));
   console.log("NODE_ENV:", process.env.NODE_ENV);
-  if (app.get("env") === "development") {
-    console.log("Using Vite dev server");
-    try {
-      await setupVite(app, server);
-      console.log("Vite dev server setup complete");
-    } catch (error) {
-      console.error("Error setting up Vite dev server:", error);
-      // Fallback to static files
-      console.log("Falling back to static file serving");
-      const path = await import("path");
-      const distPath = path.default.resolve(process.cwd(), "dist", "public");
-      console.log("Serving static files from:", distPath);
-      app.use(express.static(distPath));
-      app.use("*", (_req, res) => {
-        res.sendFile(path.default.resolve(distPath, "index.html"));
-      });
-      console.log("Fallback static server configured");
-    }
-  } else {
-    console.log("Using static file serving");
-    try {
-      serveStatic(app);
-      console.log("Static files configured successfully");
-    } catch (error) {
-      console.error("Error setting up static files:", error);
-      // Fallback: serve static files manually
-      const path = await import("path");
-      const distPath = path.default.resolve(process.cwd(), "dist", "public");
-      console.log("Fallback: serving static files from:", distPath);
-      app.use(express.static(distPath));
-      app.use("*", (_req, res) => {
-        res.sendFile(path.default.resolve(distPath, "index.html"));
-      });
-    }
-  }
+  
+  // Force static file serving to fix preview issues
+  console.log("Using static file serving (forced)");
+  const path = await import("path");
+  const distPath = path.default.resolve(process.cwd(), "dist", "public");
+  console.log("Serving static files from:", distPath);
+  app.use(express.static(distPath));
+  app.use("*", (_req, res) => {
+    res.sendFile(path.default.resolve(distPath, "index.html"));
+  });
+  console.log("Static server configured successfully");
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Default to 5000 to match deployment configuration
