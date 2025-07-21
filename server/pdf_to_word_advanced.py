@@ -61,6 +61,7 @@ def convert_with_enhanced_pdfplumber(input_path, output_path):
         from docx import Document
         from docx.shared import Inches, Pt
         from docx.enum.text import WD_ALIGN_PARAGRAPH
+        import re
         # Import WD_TABLE_ALIGNMENT with fallback for older python-docx versions
         try:
             from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -70,7 +71,6 @@ def convert_with_enhanced_pdfplumber(input_path, output_path):
                 LEFT = 0
                 CENTER = 1
                 RIGHT = 2
-        import re
         
         doc = Document()
         
@@ -118,6 +118,15 @@ def convert_with_enhanced_pdfplumber(input_path, output_path):
 
 def create_word_table(doc, table_data):
     """Create properly formatted Word table"""
+    # Import WD_TABLE_ALIGNMENT with fallback
+    try:
+        from docx.enum.table import WD_TABLE_ALIGNMENT
+    except ImportError:
+        class WD_TABLE_ALIGNMENT:
+            LEFT = 0
+            CENTER = 1
+            RIGHT = 2
+    
     if not table_data or len(table_data) < 1:
         return
     
@@ -161,6 +170,9 @@ def create_word_table(doc, table_data):
 
 def process_text_with_structure(doc, text, is_first_page=False):
     """Process text while preserving structure and formatting"""
+    import re
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
     lines = text.split('\n')
     
     for i, line in enumerate(lines):
@@ -188,6 +200,7 @@ def process_text_with_structure(doc, text, is_first_page=False):
 
 def classify_line_type(line, is_first_line=False):
     """Classify line type for appropriate formatting"""
+    import re
     
     # Name - first line or short proper noun phrase
     if (is_first_line or 
@@ -222,6 +235,8 @@ def classify_line_type(line, is_first_line=False):
 
 def create_name_heading(doc, text):
     """Create centered name heading"""
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
     para = doc.add_heading(text, level=1)
     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
     for run in para.runs:
@@ -230,6 +245,8 @@ def create_name_heading(doc, text):
 
 def create_contact_info(doc, text):
     """Create centered contact information"""
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
     para = doc.add_paragraph(text)
     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
     for run in para.runs:
@@ -238,6 +255,8 @@ def create_contact_info(doc, text):
 
 def create_section_header(doc, text):
     """Create section header"""
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
     para = doc.add_heading(text, level=2)
     para.alignment = WD_ALIGN_PARAGRAPH.LEFT
     for run in para.runs:
@@ -246,6 +265,9 @@ def create_section_header(doc, text):
 
 def create_job_title_with_date(doc, text):
     """Create job title with right-aligned date"""
+    import re
+    from docx.shared import Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
     # Try to separate job title and date
     date_pattern = r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*\d{4}.*?Present|Present|\d{4}\s*-\s*\d{4}'
     date_match = re.search(date_pattern, text)
