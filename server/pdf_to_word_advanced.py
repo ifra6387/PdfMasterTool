@@ -61,7 +61,15 @@ def convert_with_enhanced_pdfplumber(input_path, output_path):
         from docx import Document
         from docx.shared import Inches, Pt
         from docx.enum.text import WD_ALIGN_PARAGRAPH
-        from docx.enum.table import WD_TABLE_ALIGNMENT
+        # Import WD_TABLE_ALIGNMENT with fallback for older python-docx versions
+        try:
+            from docx.enum.table import WD_TABLE_ALIGNMENT
+        except ImportError:
+            # Fallback shim for older python-docx versions
+            class WD_TABLE_ALIGNMENT:
+                LEFT = 0
+                CENTER = 1
+                RIGHT = 2
         import re
         
         doc = Document()
@@ -127,7 +135,13 @@ def create_word_table(doc, table_data):
     max_cols = max(len(row) for row in filtered_data)
     table = doc.add_table(rows=len(filtered_data), cols=max_cols)
     table.style = 'Table Grid'
-    table.alignment = WD_TABLE_ALIGNMENT.LEFT
+    
+    # Set table alignment with fallback
+    try:
+        table.alignment = WD_TABLE_ALIGNMENT.LEFT
+    except (NameError, AttributeError):
+        # Skip alignment if WD_TABLE_ALIGNMENT not available
+        pass
     
     # Fill table data
     for row_idx, row_data in enumerate(filtered_data):
