@@ -1,15 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { log } from "./vite";
 import { initializeFileCleanup } from "./services/file-cleanup";
 
-
-
 const app = express();
-// Middleware - increased limits for PDF processing with large base64 data
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ extended: true, limit: '100mb', parameterLimit: 50000 }));
 
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb", parameterLimit: 50000 }));
+
+// Logging Middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -28,11 +27,9 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
@@ -41,26 +38,23 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
-  
-  // Initialize database tables on startup
+  await registerRoutes(app);
+
   try {
     const { initializeDatabase } = await import("./init-db");
     await initializeDatabase();
-    console.log("Database initialized successfully");
-  } catch (error) {
-    console.warn("Database initialization failed, continuing with limited functionality:", error);
-  }
-  
-  // Initialize file cleanup scheduler
-  try {
-    initializeFileCleanup();
-    console.log("File cleanup scheduler initialized");
-  } catch (error) {
-    console.error("Error initializing file cleanup:", error);
+    console.log("✅ Database initialized successfully");
+  } catch (error: any) {
+    console.warn("⚠️ Database initialization failed:", error);
   }
 
-  // Add basic health check route
+  try {
+    initializeFileCleanup();
+    console.log("✅ File cleanup scheduler initialized");
+  } catch (error: any) {
+    console.error("❌ File cleanup error:", error);
+  }
+
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
@@ -68,20 +62,11 @@ app.use((req, res, next) => {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
     console.error("Request error:", err);
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  console.log("Setting up static file serving...");
-  console.log("Current environment:", app.get("env"));
-  console.log("NODE_ENV:", process.env.NODE_ENV);
-  
-  // Force static file serving to fix preview issues
-  console.log("Using static file serving (forced)");
+  // Always serve static in all envs (for Replit compatibility)
   const path = await import("path");
   const distPath = path.default.resolve(process.cwd(), "dist", "public");
   console.log("Serving static files from:", distPath);
@@ -89,15 +74,11 @@ app.use((req, res, next) => {
   app.use("*", (_req, res) => {
     res.sendFile(path.default.resolve(distPath, "index.html"));
   });
-  console.log("Static server configured successfully");
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Default to 5000 to match deployment configuration
-  const port = parseInt(process.env.PORT || '5000', 10);
-  
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${port}`);
-    console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
+  const port = parseInt(process.env.PORT || "5000", 10);
+  app.listen(port, "0.0.0.0", () => {
+    console.log(`🚀 Server running on http://localhost:${port}`);
+    console.log(`📁 Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`🌐 Ready for deployment`);
     log(`serving on port ${port}`);
   });
