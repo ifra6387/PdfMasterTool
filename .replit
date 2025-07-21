@@ -4,31 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules"]
 
 [nix]
 channel = "stable-24_05"
-packages = [
-  "freetype",
-  "glibcLocales",
-  "gumbo",
-  "harfbuzz",
-  "imagemagickBig",
-  "jbig2dec",
-  "lcms2",
-  "libGL",
-  "libGLU",
-  "libimagequant",
-  "libjpeg",
-  "libjpeg_turbo",
-  "libtiff",
-  "libwebp",
-  "libxcrypt",
-  "mupdf",
-  "openjpeg",
-  "swig",
-  "tcl",
-  "tesseract",
-  "tk",
-  "xcbuild",
-  "zlib",
-]
+packages = ["freetype", "glibcLocales", "gumbo", "harfbuzz", "imagemagickBig", "jbig2dec", "lcms2", "libGL", "libGLU", "libimagequant", "libjpeg", "libjpeg_turbo", "libtiff", "libwebp", "libxcrypt", "mupdf", "openjpeg", "swig", "tcl", "tesseract", "tk", "xcbuild", "zlib"]
 
 [deployment]
 deploymentTarget = "gce"
@@ -47,7 +23,6 @@ externalPort = 80
 PORT = "5000"
 
 [workflows]
-runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
