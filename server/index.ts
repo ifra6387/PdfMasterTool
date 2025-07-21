@@ -53,23 +53,46 @@ app.use((req, res, next) => {
   }
   
   // Initialize file cleanup scheduler
-  initializeFileCleanup();
+  try {
+    initializeFileCleanup();
+    console.log("File cleanup scheduler initialized");
+  } catch (error) {
+    console.error("Error initializing file cleanup:", error);
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    console.error("Request error:", err);
   });
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
+  console.log("Setting up static file serving...");
+  console.log("Current environment:", app.get("env"));
+  console.log("NODE_ENV:", process.env.NODE_ENV);
   if (app.get("env") === "development") {
+    console.log("Using Vite dev server");
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    console.log("Using static file serving");
+    try {
+      serveStatic(app);
+      console.log("Static files configured successfully");
+    } catch (error) {
+      console.error("Error setting up static files:", error);
+      // Fallback: serve static files manually
+      const path = await import("path");
+      const distPath = path.default.resolve(process.cwd(), "dist", "public");
+      console.log("Fallback: serving static files from:", distPath);
+      app.use(express.static(distPath));
+      app.use("*", (_req, res) => {
+        res.sendFile(path.default.resolve(distPath, "index.html"));
+      });
+    }
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
