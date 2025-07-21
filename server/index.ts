@@ -59,16 +59,7 @@ app.use((req, res, next) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
-  // Explicit favicon route to ensure it's served correctly
-  app.get("/favicon.ico", async (_req, res) => {
-    const path = await import("path");
-    const faviconPath = path.default.resolve(process.cwd(), "dist", "public", "favicon.ico");
-    res.sendFile(faviconPath, (err) => {
-      if (err) {
-        res.status(404).send("Favicon not found");
-      }
-    });
-  });
+  // Remove explicit favicon route - let static middleware handle it
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
