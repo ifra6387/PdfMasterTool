@@ -60,6 +60,11 @@ app.use((req, res, next) => {
     console.error("Error initializing file cleanup:", error);
   }
 
+  // Add basic health check route
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -76,7 +81,22 @@ app.use((req, res, next) => {
   console.log("NODE_ENV:", process.env.NODE_ENV);
   if (app.get("env") === "development") {
     console.log("Using Vite dev server");
-    await setupVite(app, server);
+    try {
+      await setupVite(app, server);
+      console.log("Vite dev server setup complete");
+    } catch (error) {
+      console.error("Error setting up Vite dev server:", error);
+      // Fallback to static files
+      console.log("Falling back to static file serving");
+      const path = await import("path");
+      const distPath = path.default.resolve(process.cwd(), "dist", "public");
+      console.log("Serving static files from:", distPath);
+      app.use(express.static(distPath));
+      app.use("*", (_req, res) => {
+        res.sendFile(path.default.resolve(distPath, "index.html"));
+      });
+      console.log("Fallback static server configured");
+    }
   } else {
     console.log("Using static file serving");
     try {
